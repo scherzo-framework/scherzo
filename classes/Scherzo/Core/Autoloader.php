@@ -43,7 +43,7 @@ class Autoloader
 
             // add the path to any sub-namespace
             if ($lastNsPos = strrpos($class, '\\')) {
-                $namespace = substr($class, 0, $lastNsPos);
+                $namespace = str_replace('\\', DIRECTORY_SEPARATOR, substr($class, 0, $lastNsPos));
                 $class = substr($class, $lastNsPos + 1);
                 $path .= "$namespace/";
             }
