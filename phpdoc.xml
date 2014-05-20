@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdoc>
+	<title>Scherzo 0.1-1-dev</title>
+<!-- These are unnecessary/don't work in grunt
+	<parser>
+		<target>docs/working</target>
+	</parser>
+	<transformer>
+		<target>docs/api</target>
+	</transformer>
+	<transformations>
+		<template name="responsive-twig" />
+-->
+	<transformations>
+		<template name="clean" />
+	</transformations>
+	<files>
+		<file>../index.php</file>
+		<directory>../classes</directory>
+	</files>
+</phpdoc>
