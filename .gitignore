@@ -1,2 +1,5 @@
 build/
 node_modules/
+vendor/autoload.php
+vendor/composer/
+composer.lock

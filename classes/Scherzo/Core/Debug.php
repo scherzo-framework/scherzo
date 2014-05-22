@@ -23,7 +23,7 @@ class Debug extends Service
 
     protected function afterConstructor()
     {
-        require_once(__DIR__.'/../../../vendor/tracy/src/tracy.php');
+        require_once(__DIR__.'/../../../vendor/tracy/tracy/src/tracy.php');
     }
 
     public function dump($var, $return = null) {
