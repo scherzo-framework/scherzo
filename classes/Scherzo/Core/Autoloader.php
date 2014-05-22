@@ -50,8 +50,13 @@ class Autoloader
             // add the class name
             $path = "$path$class.php";
 
-            include_once $path;
-            return $path;
+            // this is a signal to the error handler
+            $ignoreWarning = true;
+            if (include_once $path) {
+                return $path;
+            } else {
+                return false;
+            }
 
         } catch (Exception $e) {
             return false;
