@@ -8,7 +8,7 @@
 **/
 namespace Scherzo;
 
-use Exception;
+use Exception, Scherzo\Core\ScherzoException;
 
 /**
  * Scherzo main class.
@@ -77,7 +77,7 @@ class Scherzo
         $container->handleFlow->shutdown();
 
         // should never get here
-        throw new Exception('Flow controller did not exit');
+        throw new ScherzoException('Flow controller did not exit');
 
     }
 
@@ -118,16 +118,20 @@ class Scherzo
     **/
     protected static function bootstrapLocal($initialOptions) {
 
-        // load the base class, unless a customised bootstrap has done it already
+        // load the base local class unless it is already available
         if (!class_exists('Scherzo\Core\Local')) {
-            include __DIR__.'/Core/Local.php';
+            require __DIR__.'/Core/Local.php';
         }
 
         $localFile = $initialOptions->localFile;
 
         // load the local file (which defines Local extending \Scherzo\Local)
         if (!include $localFile) {
-            throw new Exception("local file $localFile does not exist");
+            // ScherzoException may not be available
+            if (!class_exists('Scherzo\Core\ScherzoException')) {
+                require __DIR__.'/Core/ScherzoException.php';
+            }
+            throw new ScherzoException("local file $localFile does not exist");
         };
 
         if (isset($initialOptions->deployment)) {

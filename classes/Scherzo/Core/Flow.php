@@ -94,7 +94,7 @@ class Flow extends \Scherzo\Core\Service
             $this->displayException($e);
             $this->shutdown();
 
-            throw new Exception('Should never get here');
+            throw new ScherzoException('Should never get here');
 
         } catch (Exception $eee) {
             if (!headers_sent()) {

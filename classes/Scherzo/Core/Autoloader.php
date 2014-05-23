@@ -122,7 +122,11 @@ class Autoloader
     {
         $realpath = realpath($path);
         if ($realpath == '') {
-            throw new Exception(strtr(
+            // if the Scherzo namespace has not been set up ScherzoException may not be available
+            if (!class_exists('Scherzo\Core\ScherzoException')) {
+                require __DIR__.'/ScherzoException.php';
+            }
+            throw new ScherzoException(strtr(
                 'Cannot set nonexistant path ":path" for namespace ":ns"',
                 array(':path' => $path, ':ns' => $namespace)
             ));

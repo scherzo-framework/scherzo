@@ -9,7 +9,7 @@
 
 namespace Scherzo\Core;
 
-use Exception;
+use Exception, Scherzo\Core\ScherzoException;
 
 /**
  * Scherzo dependency injection container.
@@ -53,7 +53,7 @@ class Container
     public function __set($name, $value)
     {
         if (isset($this->_loaded[$name])) {
-            throw new Exception(strtr(
+            throw new ScherzoException(strtr(
                 'Service ":service" cannot be overloaded',
                 array(':service' => $name)));
         }
@@ -78,19 +78,26 @@ class Container
     **/
     public function load($name, $alias = null)
     {
+        // if no alias, load the service with the name it is registered as
         if ($alias === null) {
             $alias = $name;
         }
-        if (isset($this->_loaded[$alias])) {
-            throw new Exception(strtr(
-                'Cannot overload existing service ":alias" with registered service ":service"',
-                array(':alias' => $name, ':service' => $name)));
-        }
+
+        // check it is registered
         if (!isset($this->_registered[$name])) {
-            throw new Exception(strtr(
+            throw new ScherzoException(strtr(
                 'Cannot load unregistered service ":service"',
                 array(':service' => $name)));
         }
+
+        // check it is not loaded already
+        if (isset($this->_loaded[$alias])) {
+            throw new ScherzoException(strtr(
+                'Cannot overload existing service ":alias" with registered service ":service"',
+                array(':alias' => $name, ':service' => $name)));
+        }
+
+        // try to load it
         if (class_exists($this->_registered[$name])) {
             $this->_loaded[$alias] = new $this->_registered[$name]($this, $alias);
         } else {
