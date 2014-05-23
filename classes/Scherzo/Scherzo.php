@@ -40,6 +40,7 @@ class Scherzo
 
             // bootstrap the autoloader
             $autoloader = static::bootstrapAutoloader($local);
+            $autoloader->setNamespace('Scherzo', $local->coreScherzoDirectory . 'classes');
 
             // bootstrap the container for dependency injection
             $container = static::bootstrapContainer($local);
@@ -59,6 +60,14 @@ class Scherzo
             static::bootstrapError($options, $e);
             // may return here in unit test mode
             return;
+        }
+
+        try {
+            $autoloader->setNamespace(
+                $local->coreApplicationNamespace,
+                $local->coreApplicationDirectory . 'classes');
+        } catch (Exception $e) {
+            throw new \Scherzo\Core\ScherzoException("Application directory \"$local->coreApplicationDirectory\" set in local.php does not exist.");
         }
 
         // lazy-load and execute the Front Controller
@@ -167,8 +176,6 @@ class Scherzo
             require_once __DIR__.'/Core/Autoloader.php';
             $autoloader = new \Scherzo\Core\Autoloader;
         }
-        $autoloader->setNamespace('Scherzo', $local->coreScherzoDirectory . 'classes');
-        $autoloader->setNamespace($local->coreApplicationNamespace, $local->coreApplicationDirectory . '/classes');
         $autoloader->register();
         return $autoloader;
     }
