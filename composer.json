@@ -1,0 +1,22 @@
+{
+  "name": "scherzo/scherzo",
+  "license": "ISC",
+  "description": "Lightweight PHP Framework",
+  "homepage": "https://github.com/scherzo-framework/scherzo",
+  "authors": [
+      {
+          "name": "Paul Bloomfield",
+          "homepage": "https://github.com/paulbloomfield-uk/"
+      }
+  ],
+  "require": {
+      "php": "^7.1",
+      "psr/container": "^1.0",
+      "symfony/http-foundation": "^4.1"
+  },
+  "autoload": {
+      "psr-4": {
+          "Scherzo\\": "src/Scherzo/"
+      }
+  }
+}
