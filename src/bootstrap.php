@@ -4,6 +4,8 @@ use Scherzo\Pipeline;
 use Scherzo\Container;
 use Scherzo\HttpService;
 
+require_once(__DIR__.'/../vendor/autoload.php');
+
 $request = isset($request) ? $request : null;
 
 $container = new Container;
