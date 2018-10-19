@@ -14,6 +14,8 @@ class Scherzo {
             'http' => HttpService::class,
             'router' => Router::class,
         ],
+        'routes' => [
+        ],
     ];
 
     protected $request;
@@ -24,37 +26,57 @@ class Scherzo {
 
     public function run() {
 
-        // Load the config from arguments.
-        $config = call_user_func_array('array_merge_recursive', func_get_args());
+        try {
+            // Errors still not exceptions??
+            set_error_handler([$this, 'exception_error_handler']);
+            array_key_exists([], 'key');
 
-        // Create a container and add essential services.
-        $container = new Container();
-        $container->config = $config;
-        $container->define($container->config['services']);
+            // Load the config from arguments.
+            $config = func_get_args();
+            array_unshift($config, $this->defaults);
+            $config = call_user_func_array('array_merge_recursive', $config);
 
-        // Add routes.
-        $container->router->addRoutes([
-            $container->config['routes']
-        ]);
+            // Create a container and add essential services.
+            $container = new Container();
+            $container->config = $config;
+            $container->define($container->config['services']);
 
-        // Build the request pipeline
-        $next = new Pipeline($container);
+            // Add routes.
+            $container->router->addRoutes($container->config['routes']);
 
-        $next->pushMultiple([
-        // Use the HTTP service to send the response.
-        ['http', 'sendResponseMiddleware'],
+            // Build the request pipeline
+            $next = new Pipeline($container);
 
-        // Use the HTTP service to parse the request.
-        ['http', 'parseRequestMiddleware'],
+            $next->pushMultiple([
+            // Use the HTTP service to send the response.
+            ['http', 'sendResponseMiddleware'],
 
-        // Use the Router service to match a route.
-        ['router', 'matchRouteMiddleware'],
+            // Use the HTTP service to parse the request.
+            ['http', 'parseRequestMiddleware'],
 
-        // Use the Router service to dispatch the route.
-        ['router', 'dispatchRouteMiddleware'],
-        ]);
+            // Use the Router service to match a route.
+            ['router', 'matchRouteMiddleware'],
 
-        // Execute the pipeline with a provided request (or parse it from globals if null).
-        return $next($next, $this->request);
+            // Use the Router service to dispatch the route.
+            ['router', 'dispatchRouteMiddleware'],
+            ]);
+
+            // Execute the pipeline with a provided request (or parse it from globals if null).
+            return $next($next, $this->request);
+
+        } catch (\Throwable $e) {
+            try {
+                // Handle in development environment.
+                if ($config['env'] === 'dev') {
+                }
+            } catch (\Throwable $ee) {
+            }
+            echo 'Unexpected error';
+            return false;
+        }
+    }
+
+    function exception_error_handler($severity, $message, $file, $line) {
+        throw new \ErrorException($message, 0, $severity, $file, $line);
     }
 }

@@ -48,11 +48,11 @@ class Router {
     }
 
     /**
-     * Add many routes..
+     * Add many routes.
     **/
     public function addRoutes(array $routes) : self {
         $callback = function ($route) {
-            $this->addRoute($route[0], $route[1], $route[2]);
+            call_user_func_array([$this, 'addRoute'], $route);
         };
         array_walk($routes, $callback);
         return $this;
