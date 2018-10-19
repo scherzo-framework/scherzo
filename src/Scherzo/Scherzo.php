@@ -12,6 +12,10 @@ class Scherzo {
     protected $container;
 
     protected $defaults = [
+        'app' => [
+            'path' => null,
+            'env' => 'prod',
+        ],
         'services' => [
             'http' => HttpService::class,
             'router' => Router::class,
@@ -35,13 +39,18 @@ class Scherzo {
             // Load the config from arguments.
             $config = func_get_args();
             array_unshift($config, $this->defaults);
-            $config = call_user_func_array('array_merge_recursive', $config);
+            $config = call_user_func_array('array_replace_recursive', $config);
+
+            $path = $config['app']['path'];
+            if ($path && file_exists("$path/config/config.php")) {
+                $file = "$path/config/config.php";
+                $config = array_replace_recursive($config, include($file));
+            }
 
             // Create a container and add essential services.
             $this->container = new Container();
             $this->container->config = $config;
             $this->container->define($this->container->config['services']);
-            print_r($this->container);
 
             // Add routes.
             $this->container->router->addRoutes($this->container->config['routes']);
@@ -69,7 +78,8 @@ class Scherzo {
         } catch (\Throwable $e) {
             try {
                 // Handle in development environment.
-                if ($config['env'] === 'dev') {
+                $config = $this->container->get('config');
+                if ($config['app']['env'] === 'dev') {
                     $handler = $this->container->get('debug');
                     $handler->handle($e);
                     return $e;
@@ -77,6 +87,7 @@ class Scherzo {
             } catch (\Throwable $ee) {
                 throw $ee;
             }
+            throw $e;
             echo 'Unexpected error';
             return $e;
         }

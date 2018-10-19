@@ -12,9 +12,11 @@ namespace Scherzo;
 /**
  * Thrown by a Router if the HTTP method is not allowed for the route.
 **/
-class RouterMethodNotAllowedException extends RouterException {
+class HttpMethodNotAllowedException extends HttpException {
     /** @var array */
     protected $allowedMethods = [];
+
+    protected $status = 405;
 
     public function getAllowedMethods() : array {
         return $this->allowedMethods;

@@ -12,4 +12,6 @@ namespace Scherzo;
 /**
  * Thrown by a Router if a matching route is not found.
 **/
-class RouterNotFoundException extends RouterException {}
+class HttpNotFoundException extends HttpException {
+    protected $status = 404;
+}

@@ -11,8 +11,10 @@ namespace Scherzo;
 
 use Scherzo\ServiceTrait;
 
-use Scherzo\Http\RequestInterface as Request;
-use Scherzo\Http\ResponseInterface as Response;
+use Scherzo\RequestInterface as Request;
+use Scherzo\ResponseInterface as Response;
+use Scherzo\HttpNotFoundException as NotFoundException;
+use Scherzo\HttpMethodNotAllowedException as MethodNotAllowedException;
 
 // external dependency
 use FastRoute\RouteCollector as Collector;
@@ -72,10 +74,11 @@ class Router {
                     'vars' => $routeInfo[2],
                 ];
             case Matcher::NOT_FOUND:
-                throw new RouterNotFoundException(['Could not find a route for :method :path', ':method' => $method, ':path' => $path]);
+                throw new NotFoundException(['Could not find a route for :method :path',
+                    ':method' => $method, ':path' => $path]);
             case Matcher::METHOD_NOT_ALLOWED:
-                throw (new RouterMethodNotAllowedException(
-                    "Method $method not allowed for path $path"))
+                throw (new MethodNotAllowedException(['Method :method not allowed for path :path',
+                    ':method' => $method, ':path' => $path]))
                     ->setAllowedMethods($routeInfo[1]);
             default:
                 throw new RouterException(
@@ -102,8 +105,8 @@ class Router {
 
         try {
             $route = $router->match($method, $path);
-        } catch (\Scherzo\Router\RouterException $e) {
-            $response = $http->createResponse('Not Found', 404);
+        } catch (RouterException $e) {
+            throw new NotFoundException($request);
             return;
         }
 
@@ -134,7 +137,7 @@ class Router {
             $controller = new $action[0]($this->container, $request);
             $method = $action[1];
             $response = $controller->$method($route['vars']);
-            if (!($response instanceof \Scherzo\Http\ResponseInterface)) {
+            if (!($response instanceof Response)) {
                 $response = $http->createResponse($response);
             }
         }
