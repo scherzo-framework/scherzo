@@ -30,6 +30,7 @@ phpunit --bootstrap test/bootstrap.php test
 #### Blocking release 0.4
 
 #### Scheduled for release 0.4
+- config service
 - Add e2e tests
 - Add unit tests
 

@@ -9,20 +9,32 @@ use Scherzo\Router;
 
 class Scherzo {
 
+    protected $defaults = [
+        'services' => [
+            'http' => HttpService::class,
+            'router' => Router::class,
+        ],
+    ];
+
+    protected $request;
+
+    public function __construct($request = null) {
+        $this->request = $request;
+    }
+
     public function run() {
 
-        $request = isset($request) ? $request : null;
+        // Load the config from arguments.
+        $config = call_user_func_array('array_merge_recursive', func_get_args());
 
-        $container = new Container;
+        // Create a container and add essential services.
+        $container = new Container();
+        $container->config = $config;
+        $container->define($container->config['services']);
 
-        // Add essential services
-        $container->define('http', HttpService::class);
-        $container->define('router', Router::class);
-
+        // Add routes.
         $container->router->addRoutes([
-            ['GET', '{path:/.*}', function ($vars, $request) {
-                return $this->http->createResponse('Hello Worlds');
-            }],
+            $container->config['routes']
         ]);
 
         // Build the request pipeline
@@ -42,7 +54,7 @@ class Scherzo {
         ['router', 'dispatchRouteMiddleware'],
         ]);
 
-        // Execute the pipeline
-        return $next($next, $request);
+        // Execute the pipeline with a provided request (or parse it from globals if null).
+        return $next($next, $this->request);
     }
 }
