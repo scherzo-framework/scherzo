@@ -9,6 +9,8 @@ use Scherzo\Router;
 
 class Scherzo {
 
+    protected $container;
+
     protected $defaults = [
         'services' => [
             'http' => HttpService::class,
@@ -29,7 +31,6 @@ class Scherzo {
         try {
             // Errors still not exceptions??
             set_error_handler([$this, 'exception_error_handler']);
-            array_key_exists([], 'key');
 
             // Load the config from arguments.
             $config = func_get_args();
@@ -37,15 +38,16 @@ class Scherzo {
             $config = call_user_func_array('array_merge_recursive', $config);
 
             // Create a container and add essential services.
-            $container = new Container();
-            $container->config = $config;
-            $container->define($container->config['services']);
+            $this->container = new Container();
+            $this->container->config = $config;
+            $this->container->define($this->container->config['services']);
+            print_r($this->container);
 
             // Add routes.
-            $container->router->addRoutes($container->config['routes']);
+            $this->container->router->addRoutes($this->container->config['routes']);
 
             // Build the request pipeline
-            $next = new Pipeline($container);
+            $next = new Pipeline($this->container);
 
             $next->pushMultiple([
             // Use the HTTP service to send the response.
@@ -68,11 +70,15 @@ class Scherzo {
             try {
                 // Handle in development environment.
                 if ($config['env'] === 'dev') {
+                    $handler = $this->container->get('debug');
+                    $handler->handle($e);
+                    return $e;
                 }
             } catch (\Throwable $ee) {
+                throw $ee;
             }
             echo 'Unexpected error';
-            return false;
+            return $e;
         }
     }
 
