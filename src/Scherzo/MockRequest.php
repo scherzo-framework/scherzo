@@ -10,8 +10,8 @@ class MockRequest {
     /** @var {Response} The response received to send. */
     protected $response;
 
-  /** @var {boolean} Set to true when the request has been sent. */
-  protected $isSent = false;
+    /** @var {boolean} Set to true when the request has been sent. */
+    protected $isSent = false;
 
     public function __construct(array $request = []) {
         $this->request = $request;
@@ -23,11 +23,11 @@ class MockRequest {
         return $this;
     }
 
-  public function getResponseBody() {
-    if (!$this->isSent) {
-      $this->sendRequest();
+    public function getResponseBody() {
+        if (!$this->isSent) {
+            $this->sendRequest();
+        }
+        return $this->response->getContent();
     }
-    return $this->response->getContent();
-  }
 
 }

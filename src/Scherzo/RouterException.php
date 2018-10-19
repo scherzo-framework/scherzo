@@ -10,6 +10,6 @@
 namespace Scherzo;
 
 /**
- * Thrown by a Container if an entry is not found.
+ * Thrown by a Router.
 **/
 class RouterException extends Exception {}

@@ -113,7 +113,7 @@ class Router {
     }
 
     /**
-     * Middleware to execute a route.
+     * Middleware to dispatch a route.
      *
      * @todo Move this somewhere else - it does not need to be part of either the Router service or
      *       the Http service.
@@ -122,7 +122,7 @@ class Router {
      * @param  Request   $request  Null because the request hasn't yet been parsed.
      * @return Response  The response from the rest of the pipeline.
     **/
-    public function executeRouteMiddleware(callable $next, $request = null) {
+    public function dispatchRouteMiddleware(callable $next, $request = null) {
 
         $http = $this->container->http;
         $route = $http->getRequestAttribute($request, 'route');

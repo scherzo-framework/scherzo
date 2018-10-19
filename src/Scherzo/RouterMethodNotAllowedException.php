@@ -10,7 +10,7 @@
 namespace Scherzo;
 
 /**
- * Thrown by a Container if an entry is not found.
+ * Thrown by a Router if the HTTP method is not allowed for the route.
 **/
 class RouterMethodNotAllowedException extends RouterException {
     /** @var array */
