@@ -1,0 +1,10 @@
+
+
+RewriteEngine on
+
+# Let index.php through.
+RewriteRule ^index.php$ - [L]
+
+# Rewrite everything else to index.php.
+RewriteRule . index.php [L]
+

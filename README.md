@@ -15,3 +15,9 @@ Run tests:
 ```bash
 phpunit --bootstrap test/bootstrap.php test
 ```
+
+### TODO
+#### Blocking
+- Move app configuration into a config file
+- Add e2e tests
+- Add unit tests

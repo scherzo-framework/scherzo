@@ -24,9 +24,11 @@ class Exception extends \Exception {
     public function __construct($message = null, int $code = 0, \Throwable $previous = null) {
         if (is_array($message)) {
             try {
-                $message = strtr($message[0], $message[1]);
+                $text = array_shift($message);
+                $message = strtr($text, $message);
             } catch (\Throwable $e) {
-                $message = 'Could not construct message: ' . $e->getMessage();
+                $message = strtr('Could not construct message for a :class thrown in line :line of :file',
+                    [':class' => static::class, ':line' => $this->getLine(), ':file' => $this->getFile()]);
             }
         }
         parent::__construct($message, $code, $previous);
