@@ -25,7 +25,7 @@ phpunit --bootstrap test/bootstrap.php test
 
 #### Blocking release 0.3
 - Move app configuration into a config file
-- Move bootstrap into a class
+- ~~Move bootstrap into a class~~
 
 #### Blocking release 0.4
 
