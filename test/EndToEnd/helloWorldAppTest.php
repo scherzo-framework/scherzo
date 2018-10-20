@@ -3,16 +3,17 @@
 namespace EndToEnd;
 
 use PHPUnit\Framework\TestCase;
-
 use Scherzo\MockRequest;
+
+use Scherzo\HttpNotFoundException as NotFoundException;
 
 class helloWorldAppTest extends TestCase {
 
-  public function testItSaysHello() {
+    public function testNoConfigurationGivesNotFoundException() {
 
-    $request = new MockRequest();
-
-    $this->assertEquals('Hello World', $request->getResponseBody());
-  }
+        $request = new MockRequest();
+        $this->expectException(NotFoundException::class);
+        $request->getResponseBody();
+    }
 
 }
