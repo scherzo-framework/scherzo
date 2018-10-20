@@ -1,6 +1,8 @@
 # Scherzo web application framework for PHP
 
-This 0.3 branch is a ground-up rewrite. Not yet ready for release.
+Not yet ready for release.
+
+Version 0.4.x
 
 ## Installation
 ```bash
@@ -18,19 +20,23 @@ composer install
 
 Run tests:
 ```bash
-phpunit --bootstrap test/bootstrap.php test
+phpunit
 ```
 
 ### TODO
 
 #### Blocking release 0.4
-- handle exceptions as HTTP responses
+- ~~handle exceptions as HTTP responses~~
+- Add e2e tests:
+  - ~~404 response~~
+  - 405 response
+  - 500 response
+  - 200 response
 
 #### Scheduled for release 0.4
-- config service
-- Add e2e tests
-- Add unit tests
 
 #### Consider for release 0.4
 
 #### Later
+- Config service
+- Unit tests
