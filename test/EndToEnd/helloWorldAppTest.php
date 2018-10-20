@@ -12,8 +12,9 @@ class helloWorldAppTest extends TestCase {
     public function testNoConfigurationGivesNotFoundException() {
 
         $request = new MockRequest();
-        $this->expectException(NotFoundException::class);
-        $request->getResponseBody();
+        // $this->expectException(NotFoundException::class);
+        $response = $request->getResponse();
+        $this->assertSame(404, $response->getStatusCode());
     }
 
 }

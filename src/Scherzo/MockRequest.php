@@ -24,6 +24,13 @@ class MockRequest {
         return $this;
     }
 
+    public function getResponse() {
+        if (!$this->isSent) {
+            $this->send();
+        }
+        return $this->response;
+    }
+
     public function getResponseBody() {
         if (!$this->isSent) {
             $this->send();
