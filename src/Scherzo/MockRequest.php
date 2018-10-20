@@ -2,6 +2,9 @@
 
 namespace Scherzo;
 
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
 class MockRequest {
 
     /** @var {Request} The request to send. */
@@ -19,9 +22,26 @@ class MockRequest {
     }
 
     protected function send() {
-        $app = new Scherzo($this->request);
+        $request = Request::create(
+            $this->request['uri'] ?? '/', // The URI
+            $this->request['method'] ?? 'get', // The HTTP method
+            $this->request['parameters'] ?? [], // The query (GET) or request (POST) parameters
+            $this->request['cookies'] ?? [], // The request cookies ($_COOKIE)
+            $this->request['files'] ?? [], // The request files ($_FILES)
+            $this->request['server'] ?? [], // The server parameters ($_SERVER)
+            $this->request['content'] ?? '' // The raw body data as a string or resource.
+        );
+        $request->headers->add($this->request['headers'] ?? []);
+        $app = new Scherzo($request);
         $this->response = $app->run($this->config);
         return $this;
+    }
+
+    public function getResponse() {
+        if (!$this->isSent) {
+            $this->send();
+        }
+        return $this->response;
     }
 
     public function getResponseBody() {
@@ -31,4 +51,10 @@ class MockRequest {
         return $this->response->getContent();
     }
 
+    public function getResponseStatus() {
+        if (!$this->isSent) {
+            $this->send();
+        }
+        return $this->response->getStatusCode();
+    }
 }

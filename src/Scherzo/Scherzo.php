@@ -6,6 +6,7 @@ use Scherzo\Pipeline;
 use Scherzo\Container;
 use Scherzo\HttpService;
 use Scherzo\Router;
+use Scherzo\ErrorService;
 
 class Scherzo {
 
@@ -19,6 +20,7 @@ class Scherzo {
         'services' => [
             'http' => HttpService::class,
             'router' => Router::class,
+            'errors' => ErrorService::class,
         ],
         'routes' => [
         ],
@@ -64,6 +66,9 @@ class Scherzo {
 
             // Use the HTTP service to parse the request.
             ['http', 'parseRequestMiddleware'],
+
+            // Use the Error service to handle errors.
+            ['errors', 'handleErrorsMiddleware'],
 
             // Use the Router service to match a route.
             ['router', 'matchRouteMiddleware'],

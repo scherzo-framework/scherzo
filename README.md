@@ -23,11 +23,8 @@ phpunit --bootstrap test/bootstrap.php test
 
 ### TODO
 
-#### Blocking release 0.3
-- Move app configuration into a config file
-- ~~Move bootstrap into a class~~
-
 #### Blocking release 0.4
+- handle exceptions as HTTP responses
 
 #### Scheduled for release 0.4
 - config service

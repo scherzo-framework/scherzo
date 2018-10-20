@@ -1,0 +1,9 @@
+<phpunit
+  bootstrap="test/bootstrap.php"
+>
+<testsuites>
+  <testsuite name="End to end tests">
+    <directory>test/EndToEnd</directory>
+  </testsuite>
+</testsuites>
+</phpunit>

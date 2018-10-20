@@ -81,24 +81,14 @@ class HttpService {
      * @param  callable  $next     Method to invoke the next link in the chain of responsibility.
      * @param  null      $request  Null because the request hasn't yet been parsed.
     **/
-    public function parseRequestMiddleware(callable $next, $request = null) : Response {
+    public function parseRequestMiddleware(callable $next, $mockRequest = null) : Response {
         // create the request - it all starts here
-        if ($request === null) {
+        if ($mockRequest === null) {
             // Deal with a normal call.
             $request = Request::createFromGlobals();
-        } else if (is_array($request)) {
-            // Deal with a test call.
-            $request = new Request(
-                isset($request['get']) ? $request['get'] : [], // The GET parameters
-                isset($request['post']) ? $request['post'] : [], // The POST parameters
-                isset($request['path']) ? explode('/', $request['path']) : [], // The request
-                    // attributes (parameters parsed from the PATH_INFO)
-                isset($request['cookies']) ? $request['cookies'] : [], // The COOKIE parameters
-                isset($request['files']) ? $request['files'] : [], // The FILES parameters
-                isset($request['server']) ? $request['server'] : [], // The SERVER parameters
-                isset($request['body']) ? $request['body'] : [] // The raw body data
-           );
-        } else if (!is_a($request, Request::class)) {
+        } else if (is_a($mockRequest, Request::class)) {
+            $request = $mockRequest;
+        } else {
             throw new \Exception('Invalid request passed to parseRequestMiddleware');
         }
         // return the response from the next handler in the chain
