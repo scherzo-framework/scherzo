@@ -86,17 +86,6 @@ class HttpService {
         if ($mockRequest === null) {
             // Deal with a normal call.
             $request = Request::createFromGlobals();
-        } else if (is_array($mockRequest)) {
-            // Deal with a test call.
-            $request = Request::create(
-                $mockRequest['uri'] ?? '/', // The URI
-                $mockRequest['method'] ?? 'get', // The HTTP method
-                $mockRequest['parameters'] ?? [], // The query (GET) or request (POST) parameters
-                $mockRequest['cookies'] ?? [], // The request cookies ($_COOKIE)
-                $mockRequest['files'] ?? [], // The request files ($_FILES)
-                $mockRequest['server'] ?? [], // The server parameters ($_SERVER)
-                $mockRequest['content'] ?? '' // The raw body data as a string or resource.
-            );
         } else if (is_a($mockRequest, Request::class)) {
             $request = $mockRequest;
         } else {

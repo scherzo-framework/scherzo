@@ -10,11 +10,8 @@ use Scherzo\HttpNotFoundException as NotFoundException;
 class helloWorldAppTest extends TestCase {
 
     public function testNoConfigurationGivesNotFoundException() {
-
         $request = new MockRequest();
         // $this->expectException(NotFoundException::class);
-        $response = $request->getResponse();
-        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame(404, $request->getResponseStatus());
     }
-
 }
