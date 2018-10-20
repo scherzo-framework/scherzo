@@ -79,13 +79,12 @@ class Scherzo {
             try {
                 // Handle in development environment.
                 $config = $this->container->get('config');
-                if ($config['app']['env'] === 'dev') {
+                if ($config['app']['env'] === 'dev' && $this->container->has('debug')) {
                     $handler = $this->container->get('debug');
                     $handler->handle($e);
                     return $e;
                 }
             } catch (\Throwable $ee) {
-                throw $ee;
             }
             throw $e;
             echo 'Unexpected error';

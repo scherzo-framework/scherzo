@@ -13,19 +13,20 @@ class MockRequest {
     /** @var {boolean} Set to true when the request has been sent. */
     protected $isSent = false;
 
-    public function __construct(array $request = []) {
+    public function __construct(array $request = [], array $config = []) {
         $this->request = $request;
+        $this->config = $config;
     }
 
-    protected function sendRequest() {
-        $request = $this->request;
-        $this->response = require(__DIR__.'/../bootstrap.php');
+    protected function send() {
+        $app = new Scherzo($this->request);
+        $this->response = $app->run($this->config);
         return $this;
     }
 
     public function getResponseBody() {
         if (!$this->isSent) {
-            $this->sendRequest();
+            $this->send();
         }
         return $this->response->getContent();
     }

@@ -25,7 +25,13 @@ class Exception extends \Exception {
         if (is_array($message)) {
             try {
                 $text = array_shift($message);
-                $message = strtr($text, $message);
+                if (isset($message[0])) {
+                    // Deal with `throw new Exception([$message, [':var1' => $var1...]])`.
+                    $message = strtr($text, $message[0]);
+                } else {
+                    // Deal with `throw new Exception([$message, ':var1' => $var1...])`.
+                    $message = strtr($text, $message);
+                }
             } catch (\Throwable $e) {
                 $message = strtr('Could not construct message for a :class thrown in line :line of :file',
                     [':class' => static::class, ':line' => $this->getLine(), ':file' => $this->getFile()]);
