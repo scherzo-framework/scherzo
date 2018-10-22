@@ -20,7 +20,7 @@ trait ControllerTrait {
 
     protected $jsonEncodeOptions = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK;
 
-    protected $jsonEncodeSafeOptions = JSON_HEX_TAG | JSON_PRETTY_PRINT;
+    protected $jsonSafeEncodeOptions = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT;
 
     /**
      * Constructor.
@@ -48,6 +48,8 @@ trait ControllerTrait {
             $response->setEncodingOptions($this->jsonEncodeOptions);
         } else {
             $response->setEncodingOptions($this->jsonSafeEncodeOptions);
+            $response->headers->set('content-type', 'text/plain');
+            $response->setCharset('utf-8');
         }
         $response->setData($data);
         return $response;
