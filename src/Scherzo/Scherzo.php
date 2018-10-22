@@ -3,10 +3,14 @@
 namespace Scherzo;
 
 use Scherzo\Pipeline;
+use Scherzo\ConfigLoader;
 use Scherzo\Container;
 use Scherzo\HttpService;
 use Scherzo\Router;
 use Scherzo\ErrorService;
+
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class Scherzo {
 
@@ -15,10 +19,11 @@ class Scherzo {
     protected $defaults = [
         'app' => [
             'path' => null,
-            'env' => 'prod',
+            'env'  => 'prod',
         ],
         'services' => [
-            'http' => HttpService::class,
+            'config' => ConfigLoader::class,
+            'http'   => HttpService::class,
             'router' => Router::class,
             'errors' => ErrorService::class,
         ],
@@ -26,32 +31,38 @@ class Scherzo {
         ],
     ];
 
-    protected $request;
+    protected $constructorArgs;
 
-    public function __construct($request = null) {
-        $this->request = $request;
+    public function __construct(string $appPath = null, string $configFile = null, $config = []) {
+        $this->constructorArgs = func_get_args();
     }
 
-    public function run() {
+    protected function getConfig() {
+        $configs = $this->constructorArgs;
+        $appPath = $configs[0];
+        if ($appPath === null) {
+            $configs[0] = [];
+        } else {
+            $appPath = realpath($appPath) . DIRECTORY_SEPARATOR;
+            $this->defaults['app']['path'] = $appPath;
+            $configs[0] = $appPath . 'config/config.php';
+        }
+
+        $config = new ConfigLoader($this->defaults);
+        $config->loadEach($configs);
+        $config->loadEnv();
+        return $config->get();
+    }
+
+    public function run(Request $request = null) {
 
         try {
             // Errors still not exceptions??
             set_error_handler([$this, 'exception_error_handler']);
 
-            // Load the config from arguments.
-            $config = func_get_args();
-            array_unshift($config, $this->defaults);
-            $config = call_user_func_array('array_replace_recursive', $config);
-
-            $path = $config['app']['path'];
-            if ($path && file_exists("$path/config/config.php")) {
-                $file = "$path/config/config.php";
-                $config = array_replace_recursive($config, include($file));
-            }
-
             // Create a container and add essential services.
             $this->container = new Container();
-            $this->container->config = $config;
+            $this->container->config = $this->getConfig();
             $this->container->define($this->container->config['services']);
 
             // Add routes.
@@ -78,7 +89,7 @@ class Scherzo {
             ]);
 
             // Execute the pipeline with a provided request (or parse it from globals if null).
-            return $next($next, $this->request);
+            return $next($next, $request);
 
         } catch (\Throwable $e) {
             try {

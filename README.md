@@ -11,7 +11,7 @@ composer require scherzo/scherzo
 
 ## Development
 
-Fork this the repo from https://github.com/scherzo-framework/scherzo and clone your fork.
+Fork this repo from https://github.com/scherzo-framework/scherzo and clone your fork.
 
 Install dependencies:
 ```bash
@@ -32,11 +32,13 @@ phpunit
   - 405 response
   - 500 response
   - 200 response
+- Config service
 
 #### Scheduled for release 0.4
+- JSON responses
+- JSON error responses
 
 #### Consider for release 0.4
 
 #### Later
-- Config service
 - Unit tests

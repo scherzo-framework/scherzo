@@ -8,6 +8,9 @@ use Symfony\Component\HttpFoundation\Response;
 class MockRequest {
 
     /** @var {Request} The request to send. */
+    protected $config;
+
+    /** @var {Request} The request to send. */
     protected $request;
 
     /** @var {Response} The response received to send. */
@@ -32,8 +35,8 @@ class MockRequest {
             $this->request['content'] ?? '' // The raw body data as a string or resource.
         );
         $request->headers->add($this->request['headers'] ?? []);
-        $app = new Scherzo($request);
-        $this->response = $app->run($this->config);
+        $app = new Scherzo(null, null, $this->config);
+        $this->response = $app->run($request);
         return $this;
     }
 
