@@ -2,12 +2,12 @@
 
 namespace Scherzo;
 
-use Scherzo\Pipeline;
-use Scherzo\ConfigLoader;
-use Scherzo\Container;
-use Scherzo\HttpService;
-use Scherzo\Router;
-use Scherzo\ErrorService;
+use Scherzo\Pipeline\Pipeline;
+use Scherzo\Config\ConfigLoader;
+use Scherzo\Container\Container;
+use Scherzo\Http\HttpService;
+use Scherzo\Router\Router;
+use Scherzo\ErrorService\ErrorService;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

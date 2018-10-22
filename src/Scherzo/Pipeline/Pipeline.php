@@ -2,14 +2,14 @@
 /**
  * This file is part of the Scherzo application framework.
  *
- * @link      https://github.com/paulbloomfield-uk/scherzo
- * @license   [MIT](https://github.com/paulbloomfield-uk/scherzo/blob/master/LICENSE).
- * @copyright Copyright © 2017 [Paul Bloomfield](https://github.com/paulbloomfield-uk).
+ * @link      https://github.com/scherzo-framework/scherzo
+ * @license   [MIT](https://github.com/scherzo-framework/scherzo/blob/master/LICENSE).
+ * @copyright Copyright © 2017-18 [Paul Bloomfield](https://github.com/scherzo-framework).
 **/
 
-namespace Scherzo;
+namespace Scherzo\Pipeline;
 
-use Exception;
+use Scherzo\Pipeline\PipelineException;
 
 /**
  * Implement a pipeline of handlers.
@@ -60,7 +60,7 @@ class Pipeline {
 
         // check the stack pointer is not past the end of the stack
         if ($this->stackPointer > count($this->stack) - 1) {
-            throw new Exception('Cannot call past the end of the stack');
+            throw new PipelineException('Cannot call past the end of the stack');
         }
 
         return $this->stack[$this->stackPointer];
@@ -94,7 +94,7 @@ class Pipeline {
             return $handler($this, $request);
         }
 
-        throw new \Exception('Cannot handle the next item in the pipeline.');
+        throw new PipelineException('Cannot handle the next item in the pipeline.');
     }
 
     /**

@@ -1,6 +1,8 @@
 <?php
 
-namespace Scherzo;
+namespace Scherzo\Http;
+
+use Scherzo\Scherzo;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,8 +15,8 @@ class MockRequest {
     /** @var {Request} The request to send. */
     protected $request;
 
-    /** @var {Response} The response received to send. */
-    protected $response;
+    /** @var {Response} The response received. */
+    protected $response = null;
 
     /** @var {boolean} Set to true when the request has been sent. */
     protected $isSent = false;
@@ -37,26 +39,25 @@ class MockRequest {
         $request->headers->add($this->request['headers'] ?? []);
         $app = new Scherzo($this->config);
         $this->response = $app->run($request);
-        $this->isSent = true;
         return $this;
     }
 
     public function getResponse() {
-        if (!$this->isSent) {
+        if ($this->response === null) {
             $this->send();
         }
         return $this->response;
     }
 
     public function getResponseBody() {
-        if (!$this->isSent) {
+        if ($this->response === null) {
             $this->send();
         }
         return $this->response->getContent();
     }
 
     public function getResponseStatus() {
-        if (!$this->isSent) {
+        if ($this->response === null) {
             $this->send();
         }
         return $this->response->getStatusCode();

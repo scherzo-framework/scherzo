@@ -3,7 +3,7 @@
 namespace EndToEnd;
 
 use PHPUnit\Framework\TestCase;
-use Scherzo\MockRequest;
+use Scherzo\Http\MockRequest;
 
 use Scherzo\HttpNotFoundException as NotFoundException;
 
