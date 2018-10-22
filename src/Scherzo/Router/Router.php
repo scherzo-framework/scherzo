@@ -11,8 +11,12 @@ namespace Scherzo\Router;
 
 use Scherzo\ServiceTrait;
 
-use Scherzo\RequestInterface as Request;
-use Scherzo\ResponseInterface as Response;
+// use Scherzo\RequestInterface as Request;
+// use Scherzo\ResponseInterface as Response;
+
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
 use Scherzo\Http\HttpNotFoundException as NotFoundException;
 use Scherzo\Http\HttpMethodNotAllowedException as MethodNotAllowedException;
 
@@ -127,19 +131,29 @@ class Router {
     **/
     public function dispatchRouteMiddleware(callable $next, $request = null) {
 
-        $http = $this->container->http;
-        $route = $http->getRequestAttribute($request, 'route');
+        $route = $this->container->http->getRequestAttribute($request, 'route');
         $action = $route['route'];
         $vars = $route['vars'];
         if ($action instanceof \Closure) {
-            $response = $action->call($this->container, $vars, $request);
-        } else {
-            $controller = new $action[0]($this->container, $request);
+            // Deal with a closure action.
+            $response = $action->call($this->container, $request, $vars);
+        } elseif (is_array($action)) {
+            // Deal with a service.
+            $name = $action[0];
             $method = $action[1];
-            $response = $controller->$method($route['vars']);
-            if (!($response instanceof Response)) {
-                $response = $http->createResponse($response);
+            if ($this->container->has($name)) {
+                // Deal with a service.
+                $handler = $this->container->get($name);
+            } else {
+                // Deal with any class (ideally using ControllerTrait).
+                $handler = new $name($this->container);
             }
+            $response = $handler->$method($request, $vars);
+        } else {
+            throw new RouterException('Could not dispatch the route');
+        }
+        if (!($response instanceof Response)) {
+            $response = $this->container->http->createResponse($response);
         }
         return $response;
     }

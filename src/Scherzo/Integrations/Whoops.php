@@ -7,7 +7,7 @@
  * @copyright Copyright © 2017-18 [Paul Bloomfield](https://github.com/scherzo-framework).
 **/
 
-namespace Scherzo\Integration;
+namespace Scherzo\Integrations;
 
 use Scherzo\ServiceTrait;
 use Whoops\Run as WhoopsRunner;

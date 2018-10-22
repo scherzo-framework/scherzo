@@ -2,7 +2,7 @@
 
 Not yet ready for release.
 
-Version 0.4.x
+Version 0.5.x
 
 ## Installation
 ```bash
@@ -25,23 +25,22 @@ phpunit
 
 ### TODO
 
-#### Blocking release 0.4
-- ~~handle exceptions as HTTP responses~~
-- ~~Add e2e tests:~~
-  - ~~404 response~~
+#### Blocking release 0.5
+- Controller class
+  - JSON responses
+- Error controller class
+  - JSON error responses
 
-#### Scheduled for release 0.4
-- ~~Config service~~
+#### Scheduled for release 0.5
+- ErrorController
 
-#### Consider for release 0.4
+#### Consider for release 0.5
 
-#### Later
 - Add e2e tests:
   - 405 response
   - 500 response
   - 200 response
 - Unit tests
-- Controller class
-  - JSON responses
-- Error controller class
-  - JSON error responses
+
+
+#### Later

@@ -30,7 +30,7 @@ class ErrorService {
      * @param  callable  $next     Method to invoke the next link in the chain of responsibility.
      * @param  null      $request  Null because the request hasn't yet been parsed.
     **/
-    public function handleErrorsMiddleware(callable $next, $request = null) : Response {
+    public function handleErrorsMiddleware(callable $next, Request $request = null) : Response {
         // Get the response from the next handler in the chain.
         try {
             $response = $next($next, $request);
@@ -53,8 +53,13 @@ class ErrorService {
      * @return Response   An appropriate response.
     **/
     protected function getExceptionResponse(Request $request, \Throwable $e) {
+        $debug = $this->container->get('debug');
+        if ($debug && is_callable([$debug, 'handle'])) {
+            $debug->handle($e);
+            return null;
+        }
         $httpException = new HttpException($e->getMessage());
-        return getHttpExceptionResponse($httpException);
+        return $this->getHttpExceptionResponse($request, $httpException);
     }
 
     /**
