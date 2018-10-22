@@ -18,6 +18,10 @@ trait ControllerTrait {
     /** @var Container Dependencies container. */
     protected $container;
 
+    protected $jsonEncodeOptions = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK;
+
+    protected $jsonEncodeSafeOptions = JSON_HEX_TAG | JSON_PRETTY_PRINT;
+
     /**
      * Constructor.
      *
@@ -39,7 +43,14 @@ trait ControllerTrait {
      * @return Response A response object.
     **/
     public function createJsonResponse(Request $request = null, array $data, int $status = 200, array $headers = []) : Response {
-        return new JsonResponse($data, $status, $headers);
+        $response = new JsonResponse(null, $status, $headers);
+        if ($this->request->getContentType() === 'application/json') {
+            $response->setEncodingOptions($this->jsonEncodeOptions);
+        } else {
+            $response->setEncodingOptions($this->jsonSafeEncodeOptions);
+        }
+        $response->setData($data);
+        return $response;
     }
 
     /**
