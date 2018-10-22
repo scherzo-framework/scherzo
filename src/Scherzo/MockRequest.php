@@ -35,8 +35,9 @@ class MockRequest {
             $this->request['content'] ?? '' // The raw body data as a string or resource.
         );
         $request->headers->add($this->request['headers'] ?? []);
-        $app = new Scherzo(null, null, $this->config);
+        $app = new Scherzo($this->config);
         $this->response = $app->run($request);
+        $this->isSent = true;
         return $this;
     }
 

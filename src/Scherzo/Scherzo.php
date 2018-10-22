@@ -33,25 +33,16 @@ class Scherzo {
 
     protected $constructorArgs;
 
-    public function __construct(string $appPath = null, string $configFile = null, $config = []) {
+    public function __construct() {
         $this->constructorArgs = func_get_args();
     }
 
     protected function getConfig() {
         $configs = $this->constructorArgs;
-        $appPath = $configs[0];
-        if ($appPath === null) {
-            $configs[0] = [];
-        } else {
-            $appPath = realpath($appPath) . DIRECTORY_SEPARATOR;
-            $this->defaults['app']['path'] = $appPath;
-            $configs[0] = $appPath . 'config/config.php';
-        }
-
         $config = new ConfigLoader($this->defaults);
         $config->loadEach($configs);
         $config->loadEnv();
-        return $config->get();
+        return $config; // ->get();
     }
 
     public function run(Request $request = null) {

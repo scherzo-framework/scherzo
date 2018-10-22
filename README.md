@@ -27,18 +27,21 @@ phpunit
 
 #### Blocking release 0.4
 - ~~handle exceptions as HTTP responses~~
-- Add e2e tests:
+- ~~Add e2e tests:~~
   - ~~404 response~~
-  - 405 response
-  - 500 response
-  - 200 response
-- Config service
 
 #### Scheduled for release 0.4
-- JSON responses
-- JSON error responses
+- ~~Config service~~
 
 #### Consider for release 0.4
 
 #### Later
+- Add e2e tests:
+  - 405 response
+  - 500 response
+  - 200 response
 - Unit tests
+- Controller class
+  - JSON responses
+- Error controller class
+  - JSON error responses
