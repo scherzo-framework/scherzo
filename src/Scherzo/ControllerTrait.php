@@ -44,7 +44,7 @@ trait ControllerTrait {
     **/
     public function createJsonResponse(Request $request = null, array $data, int $status = 200, array $headers = []) : Response {
         $response = new JsonResponse(null, $status, $headers);
-        if ($this->request->getContentType() === 'application/json') {
+        if ($request->getContentType() === 'application/json') {
             $response->setEncodingOptions($this->jsonEncodeOptions);
         } else {
             $response->setEncodingOptions($this->jsonSafeEncodeOptions);
