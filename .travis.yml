@@ -2,9 +2,13 @@
 
 language: php
 php:
+    - '7.4'
+    - '7.3'
     - '7.2'
-    - '7.1'
-    - nightly
+    # No longer supported
+    # - '7.1'
+    # Nightly is now 8.X so wait before we do this (Symfony components break)
+    # - nightly
 install:
     composer install
 script:
