@@ -1,16 +1,20 @@
 <?php
-/**
- * This file is part of the Scherzo application framework.
- *
- * @link      https://github.com/paulbloomfield-uk/scherzo
- * @license   [MIT](https://github.com/paulbloomfield-uk/scherzo/blob/master/LICENSE).
- * @copyright Copyright © 2017 [Paul Bloomfield](https://github.com/paulbloomfield-uk).
-**/
-namespace Scherzo;
-use Scherzo\Exception;
 
 /**
  * Thrown by a Container if an entry exists but cannot be loaded.
-**/
-class ContainerException extends Exception
-    implements \Psr\Container\ContainerExceptionInterface {}
+ *
+ * @package   Scherzo
+ * @link      https://github.com/scherzo-framework/scherzo
+ * @copyright Copyright (c) 2014-2019 [Scherzo Framework](https://github.com/scherzo-framework)
+ * @license   [MIT](https://github.com/scherzo-framework/scherzo/blob/master/LICENSE)
+ */
+
+declare(strict_types=1);
+
+namespace Scherzo;
+
+use Psr\Container\ContainerExceptionInterface;
+
+class ContainerException
+    extends \Exception
+    implements ContainerExceptionInterface {}

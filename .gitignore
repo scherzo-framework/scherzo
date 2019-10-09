@@ -1,2 +1,7 @@
+# .gitignore
 
-vendor/
+vendor
+
+# Test results.
+.phpunit.result.cache
+docs

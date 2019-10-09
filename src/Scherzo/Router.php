@@ -1,146 +1,248 @@
 <?php
-/**
- * This file is part of the Scherzo application framework.
- *
- * @link      https://github.com/paulbloomfield-uk/scherzo
- * @license   [MIT](https://github.com/paulbloomfield-uk/scherzo/blob/master/LICENSE).
- * @copyright Copyright © 2017 [Paul Bloomfield](https://github.com/paulbloomfield-uk).
-**/
+
+declare(strict_types=1);
 
 namespace Scherzo;
 
-use Scherzo\ServiceTrait;
-
+use Scherzo\Container;
+use Scherzo\Exception;
 use Scherzo\RequestInterface as Request;
-use Scherzo\ResponseInterface as Response;
-use Scherzo\HttpNotFoundException as NotFoundException;
-use Scherzo\HttpMethodNotAllowedException as MethodNotAllowedException;
+use Scherzo\Response;
 
-// external dependency
-use FastRoute\RouteCollector as Collector;
-use FastRoute\RouteParser\Std as Parser;
 use FastRoute\DataGenerator\GroupCountBased as DataGenerator;
-use FastRoute\Dispatcher\GroupCountBased as Matcher;
+use FastRoute\Dispatcher\GroupCountBased as Dispatcher;
+use FastRoute\RouteCollector;
+use FastRoute\RouteParser\Std as RouteParser;
 
 class Router {
 
-    use ServiceTrait;
+    protected $isAfterRoutes = false;
+    protected $middleware = [[], []];
 
-    protected $routes;
-
-    /**
-     * Initialize - this is called by the parent constructor.
-    **/
-    public function initialize() {
-        $this->routes = new Collector(new Parser, new DataGenerator);
+    public function __construct() {
+        $this->routeCollector = new RouteCollector(new RouteParser, new DataGenerator);
     }
 
-    /**
-     * Add a route.
-     *
-     * @param  string|array  $methods  Methods for the route.
-     * @param  string        $pattern  Pattern to match.
-     * @param  mixed         $definition  Definition of how to handle the route.
-     *
-     * @return  $this  Chainable.
-    **/
-    public function addRoute($method, string $route, $definition) : self {
-        $this->routes->addRoute($method, $route, $definition);
-        return $this;
-    }
-
-    /**
-     * Add many routes.
-    **/
-    public function addRoutes(array $routes) : self {
-        $callback = function ($route) {
-            call_user_func_array([$this, 'addRoute'], $route);
-        };
-        array_walk($routes, $callback);
-        return $this;
-    }
-
-    // TODO: public function dispatch(Request $request, Container $c) : Response {
-    public function match(string $method, string $path) {
-
-        $dispatcher = new Matcher($this->routes->getData());
-        $routeInfo = $dispatcher->dispatch($method, $path);
-        switch ($routeInfo[0]) {
-            case Matcher::FOUND:
-                return [
-                    'method' => $method,
-                    'path' => $path,
-                    'route' => $routeInfo[1],
-                    'vars' => $routeInfo[2],
-                ];
-            case Matcher::NOT_FOUND:
-                throw new NotFoundException(['Could not find a route for :method :path',
-                    ':method' => $method, ':path' => $path]);
-            case Matcher::METHOD_NOT_ALLOWED:
-                throw (new MethodNotAllowedException(['Method :method not allowed for path :path',
-                    ':method' => $method, ':path' => $path]))
-                    ->setAllowedMethods($routeInfo[1]);
-            default:
-                throw new RouterException(
-                    "Invalid code [$routeInfo[0]] returned from route matcher");
-        }
-    }
-
-    /**
-     * Middleware to match a route.
-     *
-     * @todo Move this somewhere else - it does not need to be part of either the Router service or
-     *       the Http service.
-     *
-     * @param  callable  $next     Method to invoke the next link in the chain of responsibility.
-     * @param  Request   $request  Null because the request hasn't yet been parsed.
-     * @return Response  The response from the rest of the pipeline.
-    **/
-    public function matchRouteMiddleware(callable $next, $request = null) {
-        $http = $this->container->http;
-        $router = $this->container->router;
-
-        $method = $http->getRequestMethod($request);
-        $path = $http->getRequestPath($request);
-
+    public function __invoke(Request $req, $res) {
+        $err = null;
         try {
-            $route = $router->match($method, $path);
-        } catch (RouterException $e) {
-            throw new NotFoundException($request);
-            return;
+            $this->processMiddleware($this->middleware[0], $req, $res);
+            $this->dispatch($req, $res);
+        } catch (\Throwable $e) {
+            $err = $e;
         }
-
-        $http->setRequestAttribute($request, 'route', $route);
-
-        return $next($next, $request);
+        $this->processMiddleware($this->middleware[1], $req, $res, $err);
+        return $this;
     }
 
     /**
-     * Middleware to dispatch a route.
-     *
-     * @todo Move this somewhere else - it does not need to be part of either the Router service or
-     *       the Http service.
-     *
-     * @param  callable  $next     Method to invoke the next link in the chain of responsibility.
-     * @param  Request   $request  Null because the request hasn't yet been parsed.
-     * @return Response  The response from the rest of the pipeline.
-    **/
-    public function dispatchRouteMiddleware(callable $next, $request = null) {
+     * Attach a handler to a GET request.
+     * 
+     * @param string    $path    A string with placeholders describing the path.
+     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
+     *                           and method to be called by the dispatcher. 
+     * @param \Callable $handler A callback to be executed by the dispatcher.
+     */
+    public function get(string $path, $handler) : self {
+        $this->isAfterRoutes = true;
+        $this->routeCollector->addRoute('GET', $path, $handler);
+        return $this;
+    }
 
-        $http = $this->container->http;
-        $route = $http->getRequestAttribute($request, 'route');
-        $action = $route['route'];
-        $vars = $route['vars'];
-        if ($action instanceof \Closure) {
-            $response = $action->call($this->container, $vars, $request);
+    /**
+     * Attach a handler to a POST request.
+     * 
+     * @param string    $path    A string with placeholders describing the path.
+     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
+     *                           and method to be called by the dispatcher. 
+     * @param \Callable $handler A callback to be executed by the dispatcher.
+     */
+    public function post(string $path, $handler) : self {
+        $this->isAfterRoutes = true;
+        $this->routeCollector->addRoute('POST', $path, $handler);
+        return $this;
+    }
+
+    /**
+     * Attach a handler to a PUT request.
+     * 
+     * @param string    $path    A string with placeholders describing the path.
+     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
+     *                           and method to be called by the dispatcher. 
+     * @param \Callable $handler A callback to be executed by the dispatcher.
+     */
+    public function put(string $path, $handler) : self {
+        $this->isAfterRoutes = true;
+        $this->routeCollector->addRoute('PUT', $path, $handler);
+        return $this;
+    }
+
+    /**
+     * Attach a handler to a PATCH request.
+     * 
+     * @param string    $path    A string with placeholders describing the path.
+     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
+     *                           and method to be called by the dispatcher. 
+     * @param \Callable $handler A callback to be executed by the dispatcher.
+     */
+    public function patch(string $path, $handler) : self {
+        $this->isAfterRoutes = true;
+        $this->routeCollector->addRoute('PATCH', $path, $handler);
+        return $this;
+    }
+
+    /**
+     * Attach a handler to a DELETE request.
+     * 
+     * @param string    $path    A string with placeholders describing the path.
+     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
+     *                           and method to be called by the dispatcher. 
+     * @param \Callable $handler A callback to be executed by the dispatcher.
+     */
+    public function delete(string $path, $handler) : self {
+        $this->isAfterRoutes = true;
+        $this->routeCollector->addRoute('DELETE', $path, $handler);
+        return $this;
+    }
+
+    public function use($callable) {
+        if ($this->isAfterRoutes) {
+            $this->middleware[1][] = $callable;
         } else {
-            $controller = new $action[0]($this->container, $request);
-            $method = $action[1];
-            $response = $controller->$method($route['vars']);
-            if (!($response instanceof Response)) {
-                $response = $http->createResponse($response);
+            $this->middleware[0][] = $callable;
+        }
+        return $this;
+    }
+
+    protected function canHandleCurrentErrorState($callable, \Throwable $err = null) {
+        // If the first parameter accepted by the middleware has a named type, get the name.
+        $fn = new \ReflectionFunction($callable);
+        $params = $fn->getParameters();
+        $firstParamType = $params[0]->getType();
+        if (is_a($firstParamType, \ReflectionNamedType::class)) {
+            $firstParamType = $firstParamType->getName();
+        }
+
+        if ($err) {
+            // Check we can handle errors of this type.
+            return is_a($err, $firstParamType);
+        } else {
+            // Check this is not an error handler.
+            return !is_a($firstParamType, \Throwable::class, true);
+        }
+    }
+
+    /**
+     * Handle route found.
+     *
+     * @param  string   $path    The requested path.
+     * @param  string   $method  The requested method.
+     * @param  [string] $allowed Allowed methods.
+     * @throws HttpException     Always throws a 405 exception.
+     */
+    protected function dispatchFound(
+        $handler,
+        array $params,
+        Request $req,
+        Response $res
+    ) : void {
+        $req->setParams($params);
+        if (is_array($handler)) {
+            $class = $handler[0];
+            if (class_exists($class)) {
+                $handler[0] = new $class($this->container);
+            } else {
+                throw new Exception("Handler class '$class' does not exist");
             }
         }
-        return $response;
+
+        if (is_callable($handler)) {
+            $content = call_user_func($handler, $req, $res);
+            if (is_array($content)) {
+                $res->setData($content);
+            } elseif (is_string($content)) {
+                $res->setContent($content);
+            }
+        } else {
+            throw new Exception('Handler is not callable');
+        }
+    }
+
+    /**
+     * Handle method not allowed for route.
+     *
+     * @param  string   $path    The requested path.
+     * @param  string   $method  The requested method.
+     * @param  [string] $allowed Allowed methods.
+     * @throws HttpException     Always throws a 405 exception.
+     */
+    protected function dispatchMethodNotAllowed(
+        string $path,
+        string $method,
+        array $allowed
+    ) : void {
+        throw (new HttpException(405, "$method not allowed for $path"))
+            ->setInfo([
+                'allowed' => $allowed,
+                'method' => $method,
+                'path' => $path,
+            ])
+            ->setCode('MethodNotAllowed');
+    }
+
+    /**
+     * Handle route not found.
+     *
+     * @param  string $path  The requested path.
+     * @throws HttpException Always throws a 404 exception.
+     */
+    protected function dispatchNotFound(string $path) : void {
+        throw (new HttpException(404, "Route not found for $path"))
+            ->setInfo('path', $path)
+            ->setCode('RouteNotFound');
+    }
+
+    protected function dispatch($req, $res) {
+        $dispatcher = new Dispatcher($this->routeCollector->getData());
+
+        $method = $req->getMethod();
+        $path = $req->getPathInfo();
+        $routeInfo = $dispatcher->dispatch($method, $path);
+
+        switch ($routeInfo[0]) {
+            case Dispatcher::NOT_FOUND:
+                throw $this->dispatchNotFound($path);
+            case Dispatcher::METHOD_NOT_ALLOWED:
+                throw $this->dispatchMethodNotAllowed($path, $method, $routeInfo[1]);
+            case Dispatcher::FOUND:
+                return $this->dispatchFound($routeInfo[1], $routeInfo[2], $req, $res);
+        }
+
+        throw (new Exception(
+            "Unexpected response {$routeInfo[0]} from dispatcher routing $path $method"
+        ));
+    }
+
+    protected function processMiddleware($pipeline, $req, $res, \Throwable $err = null) {
+        foreach ($pipeline as $middleware) {
+            $canHandleCurrentErrorState = $this->canHandleCurrentErrorState($middleware, $err);
+            if ($canHandleCurrentErrorState) {
+                try {
+                    if ($err) {
+                        call_user_func($middleware, $err, $req, $res);
+                    } else {
+                        call_user_func($middleware, $req, $res);
+                    }
+                    $err = null;
+                } catch (\Throwable $e) {
+                    $err = $e;
+                }
+            }
+        }
+
+        // If there is still an error that has not been handled by the pipeline, throw it.
+        if ($err) {
+            throw $err;
+        }
     }
 }
