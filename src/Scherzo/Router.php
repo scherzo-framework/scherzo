@@ -115,9 +115,14 @@ class Router {
     }
 
     protected function canHandleCurrentErrorState($callable, \Throwable $err = null) {
+        // If the first parameter accepted by the middleware has a named type, get the name.
         $fn = new \ReflectionFunction($callable);
         $params = $fn->getParameters();
-        $firstParamType = $params[0]->getType()->getName();
+        $firstParamType = $params[0]->getType();
+        if (is_a($firstParamType, \ReflectionNamedType::class)) {
+            $firstParamType = $firstParamType->getName();
+        }
+
         if ($err) {
             // Check we can handle errors of this type.
             return is_a($err, $firstParamType);
