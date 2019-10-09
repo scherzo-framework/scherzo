@@ -117,7 +117,7 @@ class Router {
     protected function canHandleCurrentErrorState($callable, \Throwable $err = null) {
         $fn = new \ReflectionFunction($callable);
         $params = $fn->getParameters();
-        $firstParamType = (string)$params[0]->getType();
+        $firstParamType = $params[0]->getType()->getName();
         if ($err) {
             // Check we can handle errors of this type.
             return is_a($err, $firstParamType);
