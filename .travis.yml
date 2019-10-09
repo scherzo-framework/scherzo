@@ -2,13 +2,14 @@
 
 language: php
 php:
-    - '7.4'
+    # Nightly is now 8.X so wait before we do this (Symfony components break)
+    # - nightly
+    # Instead we have 7.4snapshot
+    - '7.4snapshot'
     - '7.3'
     - '7.2'
     # No longer supported
     # - '7.1'
-    # Nightly is now 8.X so wait before we do this (Symfony components break)
-    # - nightly
 install:
     composer install
 script:
