@@ -1,27 +1,29 @@
 <?php
+
 /**
- * This file is part of the Scherzo application framework.
+ * PSR-11 compliant container.
  *
- * @link      https://github.com/paulbloomfield-uk/scherzo
- * @license   [MIT](https://github.com/paulbloomfield-uk/scherzo/blob/master/LICENSE).
- * @copyright Copyright © 2017 [Paul Bloomfield](https://github.com/paulbloomfield-uk).
-**/
+ * @package   Scherzo
+ * @link      https://github.com/scherzo-framework/scherzo
+ * @copyright Copyright (c) 2014-2019 [Scherzo Framework](https://github.com/scherzo-framework)
+ * @license   [MIT](https://github.com/scherzo-framework/scherzo/blob/master/LICENSE)
+ */
+
+declare(strict_types=1);
 
 namespace Scherzo;
 
-use Psr\Container\ContainerInterface;
-
 use Scherzo\ContainerException;
 use Scherzo\ContainerNotFoundException;
+
+use Psr\Container\ContainerInterface;
 
 /**
  * PSR-11 compliant container.
 **/
 class Container implements ContainerInterface {
-
     /** @var array Entry definitions. */
     protected $_definitions = [];
-
     /**
      * Magic method to lazy-load an entry.
      *
@@ -40,7 +42,6 @@ class Container implements ContainerInterface {
                 ':id' => $id,
             ]]);
     }
-
     /**
      * Define an entry or entries for lazy-loading.
      *
@@ -57,7 +58,6 @@ class Container implements ContainerInterface {
         $this->_definitions[$id] = $definition;
         return $this;
     }
-
     /**
      * PSR-11 compatible method to retrieve an entry, lazy-loading it if required.
      *
@@ -76,7 +76,6 @@ class Container implements ContainerInterface {
         // Otherwise try to lazy-load it.
         return $this->__get($id);
     }
-
     /**
      * Returns true if the container can return an entry for the given identifier.
      * Returns false otherwise.
@@ -91,7 +90,6 @@ class Container implements ContainerInterface {
         return $id !== '_definitions' && property_exists($this, $id)
             || array_key_exists($id, $this->_definitions);
     }
-
     /**
      * Load a defined entry.
      *
@@ -106,7 +104,6 @@ class Container implements ContainerInterface {
         } elseif ($asId === false) {
             $asId = null;
         }
-
         // Find the defintion.
         if (!array_key_exists($id, $this->_definitions)) {
             throw new ContainerNotFoundException([
@@ -115,7 +112,6 @@ class Container implements ContainerInterface {
                 ]]);
         }
         $definition = $this->_definitions[$id];
-
         // Check for an illegal entry id.
         if ($asId === '_definitions') {
             throw new ContainerException([
@@ -123,13 +119,10 @@ class Container implements ContainerInterface {
                     ':id' => $asId,
                 ]]);
         }
-
         $entry = $this->loadDefinition($definition);
-
         if ($asId === null) {
             return $entry;
         }
-
         try {
             $this->$asId = $entry;
         } catch (\Throwable $error) {
@@ -140,7 +133,6 @@ class Container implements ContainerInterface {
         }
         return $entry;
     }
-
     /**
      * Load a defined entry.
      *
@@ -149,23 +141,18 @@ class Container implements ContainerInterface {
      * @return mixed   The value of the entry.
     **/
     protected function loadDefinition($definition, string $asId = null) {
-
         // Load a service from a Closure.
         if (is_object($definition) && gettype($definition) === \Closure::class) {
             return $definition->call($this, $asId);
         }
-
         // Load a service from a factory method (now we know it is not a Closure).
         if (is_callable($definition)) {
             return $definition($this, $asId);
-
         }
-
         // Load a singleton service.
         if (class_exists($definition)) {
             return new $definition($this, $asId);
         }
-
         // Load anythuing else.
         return $definition;
     }

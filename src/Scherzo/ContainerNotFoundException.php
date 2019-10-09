@@ -1,17 +1,22 @@
 <?php
+
 /**
- * This file is part of the Scherzo application framework.
+ * Thrown by a Container if an entry does not exist.
  *
- * @link      https://github.com/paulbloomfield-uk/scherzo
- * @license   [MIT](https://github.com/paulbloomfield-uk/scherzo/blob/master/LICENSE).
- * @copyright Copyright © 2017 [Paul Bloomfield](https://github.com/paulbloomfield-uk).
-**/
+ * @package   Scherzo
+ * @link      https://github.com/scherzo-framework/scherzo
+ * @copyright Copyright (c) 2014-2019 [Scherzo Framework](https://github.com/scherzo-framework)
+ * @license   [MIT](https://github.com/scherzo-framework/scherzo/blob/master/LICENSE)
+ */
+
+declare(strict_types=1);
+
 namespace Scherzo;
 
 use Scherzo\ContainerException;
 
-/**
- * Thrown by a Container if an entry is not found.
-**/
-class ContainerNotFoundException extends ContainerException 
-    implements \Psr\Container\NotFoundExceptionInterface {}
+use Psr\Container\NotFoundExceptionInterface;
+
+class ContainerNotFoundException
+    extends ContainerException
+    implements NotFoundExceptionInterface {}

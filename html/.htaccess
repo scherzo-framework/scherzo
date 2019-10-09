@@ -1,0 +1,5 @@
+RewriteEngine On
+
+RewriteRule ^index.php$ - [L]
+RewriteRule ^(static|assets)(/|$) - [L]
+RewriteRule ^ index.php [L]

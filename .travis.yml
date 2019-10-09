@@ -1,10 +1,16 @@
+# .travis.yml
 
 language: php
 php:
+    # Nightly is now 8.X so wait before we do this (Symfony components break)
+    # - nightly
+    # Instead we have 7.4snapshot
+    - '7.4snapshot'
+    - '7.3'
     - '7.2'
-    - '7.1'
-    - nightly
+    # No longer supported
+    # - '7.1'
 install:
     composer install
 script:
-    phpunit --bootstrap test/bootstrap.php test
+    phpunit
