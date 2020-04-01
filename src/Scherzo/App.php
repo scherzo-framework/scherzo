@@ -20,11 +20,6 @@ use Scherzo\RequestInterface;
 
 class App extends Router {
 
-    public function __construct(Container $container = null) {
-        $this->container = $container === null ? new \StdClass() : $container;
-        parent::__construct();
-    }
-
     public function __invoke(RequestInterface $req = null, $res = null) {
         if ($req === null) {
             $req = Request::createFromGlobals();

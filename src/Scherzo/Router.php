@@ -15,11 +15,25 @@ use FastRoute\RouteCollector;
 use FastRoute\RouteParser\Std as RouteParser;
 
 class Router {
+    //HTTP verbs.
+    const DELETE = 'DELETE';
+    const GET = 'GET';
+    const HEAD = 'HEAD';
+    const PATCH = 'PATCH';
+    const POST = 'POST';
+    const PUT = 'PUT';
 
+    /** @var Container Dependencies for injection. */
+    protected $container;
+
+    /** @var bool Flag to separate request and response middleware. */
     protected $isAfterRoutes = false;
+
+    /** @var bool Request (before) and response (after) middleware. */
     protected $middleware = [[], []];
 
-    public function __construct() {
+    public function __construct(Container $container = null) {
+        $this->container = $container === null ? new \StdClass() : $container;
         $this->routeCollector = new RouteCollector(new RouteParser, new DataGenerator);
     }
 
@@ -36,72 +50,28 @@ class Router {
     }
 
     /**
-     * Attach a handler to a GET request.
+     * Attach a route to a request.
      * 
-     * @param string    $path    A string with placeholders describing the path.
-     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
-     *                           and method to be called by the dispatcher. 
-     * @param \Callable $handler A callback to be executed by the dispatcher.
+     * @param string   $httpMethod     The HTTP method to match (upper case).
+     * @param array    $httpMethod     The HTTP methods to match (upper case).
+     * @param string   $path           A string with placeholders describing the path.
+     * @param callable $handler        A callback to be executed by the dispatcher.
+     * @param string   $handler        The name of a class to be instantiated by the dispatcher
+     * @param string   $handlerMethod  The name of a method to call on the handler instance.
+     * @return self    Chainable.
      */
-    public function get(string $path, $handler) : self {
+    public function route(
+        $httpMethod,
+        string $path,
+        $handler,
+        string $handlerMethod = null
+    ): self {
         $this->isAfterRoutes = true;
-        $this->routeCollector->addRoute('GET', $path, $handler);
-        return $this;
-    }
-
-    /**
-     * Attach a handler to a POST request.
-     * 
-     * @param string    $path    A string with placeholders describing the path.
-     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
-     *                           and method to be called by the dispatcher. 
-     * @param \Callable $handler A callback to be executed by the dispatcher.
-     */
-    public function post(string $path, $handler) : self {
-        $this->isAfterRoutes = true;
-        $this->routeCollector->addRoute('POST', $path, $handler);
-        return $this;
-    }
-
-    /**
-     * Attach a handler to a PUT request.
-     * 
-     * @param string    $path    A string with placeholders describing the path.
-     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
-     *                           and method to be called by the dispatcher. 
-     * @param \Callable $handler A callback to be executed by the dispatcher.
-     */
-    public function put(string $path, $handler) : self {
-        $this->isAfterRoutes = true;
-        $this->routeCollector->addRoute('PUT', $path, $handler);
-        return $this;
-    }
-
-    /**
-     * Attach a handler to a PATCH request.
-     * 
-     * @param string    $path    A string with placeholders describing the path.
-     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
-     *                           and method to be called by the dispatcher. 
-     * @param \Callable $handler A callback to be executed by the dispatcher.
-     */
-    public function patch(string $path, $handler) : self {
-        $this->isAfterRoutes = true;
-        $this->routeCollector->addRoute('PATCH', $path, $handler);
-        return $this;
-    }
-
-    /**
-     * Attach a handler to a DELETE request.
-     * 
-     * @param string    $path    A string with placeholders describing the path.
-     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
-     *                           and method to be called by the dispatcher. 
-     * @param \Callable $handler A callback to be executed by the dispatcher.
-     */
-    public function delete(string $path, $handler) : self {
-        $this->isAfterRoutes = true;
-        $this->routeCollector->addRoute('DELETE', $path, $handler);
+        $this->routeCollector->addRoute(
+            $httpMethod,
+            $path,
+            $handlerMethod === null ? $handler : [$handler, $handlerMethod]
+        );
         return $this;
     }
 
@@ -158,11 +128,14 @@ class Router {
 
         if (is_callable($handler)) {
             $content = call_user_func($handler, $req, $res);
+            // The request handler can return an array of data to be sent as JSON...
             if (is_array($content)) {
                 $res->setData($content);
+            // ...or a string to be returned as HTML...
             } elseif (is_string($content)) {
                 $res->setContent($content);
             }
+            // ...or it can set the $response itself.
         } else {
             throw new Exception('Handler is not callable');
         }

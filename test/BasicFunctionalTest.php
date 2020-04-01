@@ -10,15 +10,14 @@ use Scherzo\Request;
 use Scherzo\Response;
 use Scherzo\HttpException;
 
-
 final class FunctionalTestsTest extends TestCase {
     protected function getResponse($req) {
         $app = new App();
         $res = new Response;
-        $app->get('/hello', function ($req) {
+        $app->route('GET', '/hello', function ($req) {
             return 'Hello world';
         });
-        $app->get('/hello/{name}', function ($req) {
+        $app->route('GET', '/hello/{name}', function ($req) {
             return 'Hello '.$req->params('name');
         });
 
@@ -50,7 +49,7 @@ final class FunctionalTestsTest extends TestCase {
         $res = new Response;
 
         // We need to set at least one route so middleware is handled after routing.
-        $app->get('', function () {});
+        $app->route('GET', '', function () {});
 
         $app->use(function (\Throwable $err, $req, $res) {
             $res->setStatusCode(404);
@@ -69,7 +68,7 @@ final class FunctionalTestsTest extends TestCase {
         $req = new Request;
         $res = new Response;
 
-        $app->get('/', function ($req, $res) {
+        $app->route('GET', '/', function ($req, $res) {
             return ['message' => 'Hello'];
         });
 

@@ -7,6 +7,7 @@ namespace Scherzo;
 use Scherzo\App;
 use Scherzo\Container;
 use Scherzo\HttpException;
+use Scherzo\Router;
 
 if (!isset($_ENV['PHP_ENV']) || $_ENV['PHP_ENV'] !== 'production') {
     error_reporting(E_ALL);
@@ -86,9 +87,9 @@ $app->use(function ($req) use ($container) {
     $container->log->log('info', 'Handling a request', $info);
 });
 
-$app->get('/hello/{name}', [Hello::class, 'sayHelloTo'])
-    ->get('/', [Hello::class, 'sayHello'])
-    ->post('/post', function () {});
+$app->route(Router::GET, '/hello/{name}', [Hello::class, 'sayHelloTo'])
+    ->route(Router::GET, '/', [Hello::class, 'sayHello'])
+    ->route(Router::POST, '/post', function () {});
 
 $app->use(function (\Throwable $err, $req, $res) use ($container) {
     if (is_a($err, HttpException::class)) {
