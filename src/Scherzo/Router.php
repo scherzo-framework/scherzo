@@ -6,7 +6,7 @@ namespace Scherzo;
 
 use Scherzo\Container;
 use Scherzo\Exception;
-use Scherzo\RequestInterface as Request;
+use Scherzo\Request;
 use Scherzo\Response;
 
 use FastRoute\DataGenerator\GroupCountBased as DataGenerator;
@@ -15,11 +15,25 @@ use FastRoute\RouteCollector;
 use FastRoute\RouteParser\Std as RouteParser;
 
 class Router {
+    //HTTP verbs.
+    const DELETE = 'DELETE';
+    const GET = 'GET';
+    const HEAD = 'HEAD';
+    const PATCH = 'PATCH';
+    const POST = 'POST';
+    const PUT = 'PUT';
 
+    /** @var Container Dependencies for injection. */
+    protected $container;
+
+    /** @var bool Flag to separate request and response middleware. */
     protected $isAfterRoutes = false;
+
+    /** @var bool Request (before) and response (after) middleware. */
     protected $middleware = [[], []];
 
-    public function __construct() {
+    public function __construct(Container $container = null) {
+        $this->container = $container === null ? new \StdClass() : $container;
         $this->routeCollector = new RouteCollector(new RouteParser, new DataGenerator);
     }
 
@@ -36,72 +50,41 @@ class Router {
     }
 
     /**
-     * Attach a handler to a GET request.
+     * Attach a route to a request.
      * 
-     * @param string    $path    A string with placeholders describing the path.
-     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
-     *                           and method to be called by the dispatcher. 
-     * @param \Callable $handler A callback to be executed by the dispatcher.
+     * @param string   $httpMethod     The HTTP method to match (upper case).
+     * @param array    $httpMethod     The HTTP methods to match (upper case).
+     * @param string   $path           A string with placeholders describing the path.
+     * @param callable $handler        A callback to be executed by the dispatcher.
+     * @param string   $handler        The name of a class to be instantiated by the dispatcher
+     * @param string   $handlerMethod  The name of a method to call on the handler instance.
+     * @return self    Chainable.
      */
-    public function get(string $path, $handler) : self {
+    public function route(
+        $httpMethod,
+        string $path,
+        $handler,
+        string $handlerMethod = null
+    ): self {
         $this->isAfterRoutes = true;
-        $this->routeCollector->addRoute('GET', $path, $handler);
+        $this->routeCollector->addRoute(
+            $httpMethod,
+            $path,
+            $handlerMethod === null ? $handler : [$handler, $handlerMethod]
+        );
         return $this;
     }
 
     /**
-     * Attach a handler to a POST request.
+     * Attach an array of routes to requests.
      * 
-     * @param string    $path    A string with placeholders describing the path.
-     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
-     *                           and method to be called by the dispatcher. 
-     * @param \Callable $handler A callback to be executed by the dispatcher.
+     * @param array    $routes     The routes.
+     * @return self    Chainable.
      */
-    public function post(string $path, $handler) : self {
-        $this->isAfterRoutes = true;
-        $this->routeCollector->addRoute('POST', $path, $handler);
-        return $this;
-    }
-
-    /**
-     * Attach a handler to a PUT request.
-     * 
-     * @param string    $path    A string with placeholders describing the path.
-     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
-     *                           and method to be called by the dispatcher. 
-     * @param \Callable $handler A callback to be executed by the dispatcher.
-     */
-    public function put(string $path, $handler) : self {
-        $this->isAfterRoutes = true;
-        $this->routeCollector->addRoute('PUT', $path, $handler);
-        return $this;
-    }
-
-    /**
-     * Attach a handler to a PATCH request.
-     * 
-     * @param string    $path    A string with placeholders describing the path.
-     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
-     *                           and method to be called by the dispatcher. 
-     * @param \Callable $handler A callback to be executed by the dispatcher.
-     */
-    public function patch(string $path, $handler) : self {
-        $this->isAfterRoutes = true;
-        $this->routeCollector->addRoute('PATCH', $path, $handler);
-        return $this;
-    }
-
-    /**
-     * Attach a handler to a DELETE request.
-     * 
-     * @param string    $path    A string with placeholders describing the path.
-     * @param array     $handler An array [$className, $methodName] of a class to be instantiated
-     *                           and method to be called by the dispatcher. 
-     * @param \Callable $handler A callback to be executed by the dispatcher.
-     */
-    public function delete(string $path, $handler) : self {
-        $this->isAfterRoutes = true;
-        $this->routeCollector->addRoute('DELETE', $path, $handler);
+    public function routes($routes): self {
+        foreach ($routes as $route) {
+            call_user_func_array([$this, 'route'], $route);
+        }
         return $this;
     }
 
@@ -118,7 +101,8 @@ class Router {
         // If the first parameter accepted by the middleware has a named type, get the name.
         $fn = new \ReflectionFunction($callable);
         $params = $fn->getParameters();
-        $firstParamType = $params[0]->getType();
+        $firstParamType = $params[0]->getType() ?: '';
+
         if (is_a($firstParamType, \ReflectionNamedType::class)) {
             $firstParamType = $firstParamType->getName();
         }
@@ -158,11 +142,14 @@ class Router {
 
         if (is_callable($handler)) {
             $content = call_user_func($handler, $req, $res);
+            // The request handler can return an array of data to be sent as JSON...
             if (is_array($content)) {
                 $res->setData($content);
+            // ...or a string to be returned as HTML...
             } elseif (is_string($content)) {
                 $res->setContent($content);
             }
+            // ...or it can set the $response itself.
         } else {
             throw new Exception('Handler is not callable');
         }
@@ -179,8 +166,12 @@ class Router {
     protected function dispatchMethodNotAllowed(
         string $path,
         string $method,
-        array $allowed
+        array $allowed,
+        Response $res
     ) : void {
+        sort($allowed);
+        $res->setStatusCode(405);
+        $res->headers->set('Allow', implode(',', $allowed));
         throw (new HttpException(405, "$method not allowed for $path"))
             ->setInfo([
                 'allowed' => $allowed,
@@ -196,7 +187,8 @@ class Router {
      * @param  string $path  The requested path.
      * @throws HttpException Always throws a 404 exception.
      */
-    protected function dispatchNotFound(string $path) : void {
+    protected function dispatchNotFound(string $path, Response $res): void {
+        $res->setStatusCode(404);
         throw (new HttpException(404, "Route not found for $path"))
             ->setInfo('path', $path)
             ->setCode('RouteNotFound');
@@ -211,9 +203,9 @@ class Router {
 
         switch ($routeInfo[0]) {
             case Dispatcher::NOT_FOUND:
-                throw $this->dispatchNotFound($path);
+                throw $this->dispatchNotFound($path, $res);
             case Dispatcher::METHOD_NOT_ALLOWED:
-                throw $this->dispatchMethodNotAllowed($path, $method, $routeInfo[1]);
+                throw $this->dispatchMethodNotAllowed($path, $method, $routeInfo[1], $res);
             case Dispatcher::FOUND:
                 return $this->dispatchFound($routeInfo[1], $routeInfo[2], $req, $res);
         }

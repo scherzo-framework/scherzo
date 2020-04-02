@@ -13,12 +13,10 @@ declare(strict_types=1);
 
 namespace Scherzo;
 
-use Scherzo\RequestInterface;
-
-use Symfony\Component\HttpFoundation;
+use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
-class Request extends HttpFoundation\Request implements RequestInterface {
+class Request extends HttpFoundationRequest {
 
     public function isProduction() {
         return isset($_ENV['PHP_ENV']) && $_ENV['PHP_ENV'] === 'production';

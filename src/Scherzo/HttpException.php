@@ -1,16 +1,12 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace Scherzo;
-
-use Scherzo\Response;
 
 class HttpException extends \RuntimeException {
     protected $statusCode;
     protected $info;
 
-    public function __construct(int $statusCode = 500, string $message = null) {
+    public function __construct(int $statusCode = 500, string $message = null, \Throwable $previous = null) {
         if ($statusCode >= 400 && isset(Response::$statusTexts[$statusCode])) {
             $this->statusCode = $statusCode;
         } else {
@@ -18,7 +14,7 @@ class HttpException extends \RuntimeException {
         }
         $code = Response::$statusTexts[$this->statusCode];
         $message = $message === null ? $code : $message;
-        parent::__construct($message, 0);
+        parent::__construct($message, 0, $previous);
         $this->$code = $code;
     }
 

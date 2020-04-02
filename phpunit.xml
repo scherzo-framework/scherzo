@@ -6,7 +6,7 @@
     </testsuites>
 
     <logging>
-        <log type="coverage-html" target="./docs/test/report" lowUpperBound="35"
+        <log type="coverage-html" target="./docs/test/coverage" lowUpperBound="35"
             highLowerBound="70"/>
         <!-- log type="coverage-clover" target="./docs/test/coverage.xml"/ -->
         <!-- log type="coverage-php" target="./docs/test/coverage.serialized"/ -->
