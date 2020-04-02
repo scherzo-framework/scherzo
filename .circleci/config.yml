@@ -15,9 +15,6 @@ jobs:
     steps:
       - checkout
 
-      - run: sudo apt update
-      - run: sudo apt install phpunit
-
       # Download and cache dependencies
       - restore_cache:
           keys:
@@ -101,4 +98,3 @@ workflows:
       - php7-2
       - php7-3
       - php7-4
-
