@@ -88,7 +88,8 @@ class Router {
         // If the first parameter accepted by the middleware has a named type, get the name.
         $fn = new \ReflectionFunction($callable);
         $params = $fn->getParameters();
-        $firstParamType = $params[0]->getType();
+        $firstParamType = $params[0]->getType() ?: '';
+
         if (is_a($firstParamType, \ReflectionNamedType::class)) {
             $firstParamType = $firstParamType->getName();
         }
@@ -152,8 +153,12 @@ class Router {
     protected function dispatchMethodNotAllowed(
         string $path,
         string $method,
-        array $allowed
+        array $allowed,
+        Response $res
     ) : void {
+        sort($allowed);
+        $res->setStatusCode(405);
+        $res->headers->set('allow', implode(',', $allowed));
         throw (new HttpException(405, "$method not allowed for $path"))
             ->setInfo([
                 'allowed' => $allowed,
@@ -169,7 +174,8 @@ class Router {
      * @param  string $path  The requested path.
      * @throws HttpException Always throws a 404 exception.
      */
-    protected function dispatchNotFound(string $path) : void {
+    protected function dispatchNotFound(string $path, Response $res): void {
+        $res->setStatusCode(404);
         throw (new HttpException(404, "Route not found for $path"))
             ->setInfo('path', $path)
             ->setCode('RouteNotFound');
@@ -184,9 +190,9 @@ class Router {
 
         switch ($routeInfo[0]) {
             case Dispatcher::NOT_FOUND:
-                throw $this->dispatchNotFound($path);
+                throw $this->dispatchNotFound($path, $res);
             case Dispatcher::METHOD_NOT_ALLOWED:
-                throw $this->dispatchMethodNotAllowed($path, $method, $routeInfo[1]);
+                throw $this->dispatchMethodNotAllowed($path, $method, $routeInfo[1], $res);
             case Dispatcher::FOUND:
                 return $this->dispatchFound($routeInfo[1], $routeInfo[2], $req, $res);
         }
