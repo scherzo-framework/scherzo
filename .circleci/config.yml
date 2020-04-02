@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  7-2:
+  php7-2:
     docker:
       # Specify the version you desire here
       #- image: circleci/php:7.2-node-browsers
@@ -14,8 +14,6 @@ jobs:
 
     steps:
       - checkout
-
-      #- run: sudo apt update
 
       # Download and cache dependencies
       - restore_cache:
@@ -44,8 +42,6 @@ jobs:
 
     steps:
       - checkout
-
-      #- run: sudo apt update
 
       # Download and cache dependencies
       - restore_cache:
@@ -102,4 +98,3 @@ workflows:
       - php7-2
       - php7-3
       - php7-4
-
