@@ -3,7 +3,7 @@
 // If you cannot access $_ENV vars uncomment the next line to force production mode.
 // $_ENV['PHP_ENV'] = 'production';
 
-$appPath = '../src/bootstrap.php';
+$appPath = '../bootstrap.php';
 
 ini_set('display_errors', 0);
 

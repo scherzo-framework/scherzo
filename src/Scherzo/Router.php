@@ -6,7 +6,7 @@ namespace Scherzo;
 
 use Scherzo\Container;
 use Scherzo\Exception;
-use Scherzo\RequestInterface as Request;
+use Scherzo\Request;
 use Scherzo\Response;
 
 use FastRoute\DataGenerator\GroupCountBased as DataGenerator;
@@ -72,6 +72,19 @@ class Router {
             $path,
             $handlerMethod === null ? $handler : [$handler, $handlerMethod]
         );
+        return $this;
+    }
+
+    /**
+     * Attach an array of routes to requests.
+     * 
+     * @param array    $routes     The routes.
+     * @return self    Chainable.
+     */
+    public function routes($routes): self {
+        foreach ($routes as $route) {
+            call_user_func_array([$this, 'route'], $route);
+        }
         return $this;
     }
 
@@ -158,7 +171,7 @@ class Router {
     ) : void {
         sort($allowed);
         $res->setStatusCode(405);
-        $res->headers->set('allow', implode(',', $allowed));
+        $res->headers->set('Allow', implode(',', $allowed));
         throw (new HttpException(405, "$method not allowed for $path"))
             ->setInfo([
                 'allowed' => $allowed,
