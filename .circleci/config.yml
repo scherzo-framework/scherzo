@@ -34,7 +34,7 @@ jobs:
             - ./vendor
 
       # run tests with phpunit
-      - run: phpunit
+      - run: ./vendor/bin/phpunit
 
   php7-3:
     docker:
@@ -62,7 +62,6 @@ jobs:
             - ./vendor
 
       # run tests with phpunit
-      - run: composer require --dev phpunit/phpunit
       - run: ./vendor/bin/phpunit
 
   php7-4:
@@ -93,7 +92,6 @@ jobs:
             - ./vendor
 
       # run tests with phpunit
-      - run: composer require --dev phpunit/phpunit
       - run: ./vendor/bin/phpunit
 
 workflows:
