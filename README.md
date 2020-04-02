@@ -26,6 +26,7 @@ phpunit
 ### TODO
 
 #### Blocking release 0.6
+- Move to Circle CI
 - Tests
 - Documentation
 - Standard middleware for error handling
