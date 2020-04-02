@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  7-2:
+  php7-2:
     docker:
       # Specify the version you desire here
       #- image: circleci/php:7.2-node-browsers
@@ -15,7 +15,8 @@ jobs:
     steps:
       - checkout
 
-      #- run: sudo apt update
+      - run: sudo apt update
+      - run: sudo apt install phpunit
 
       # Download and cache dependencies
       - restore_cache:
@@ -45,9 +46,6 @@ jobs:
     steps:
       - checkout
 
-      # - run: sudo apt update
-      - run: sudo apt install phpunit
-
       # Download and cache dependencies
       - restore_cache:
           keys:
@@ -64,6 +62,7 @@ jobs:
             - ./vendor
 
       # run tests with phpunit
+      - run: composer require --dev phpunit/phpunit
       - run: ./vendor/bin/phpunit
 
   php7-4:
@@ -94,7 +93,7 @@ jobs:
             - ./vendor
 
       # run tests with phpunit
-      - run: composer require --dev phpunit
+      - run: composer require --dev phpunit/phpunit
       - run: ./vendor/bin/phpunit
 
 workflows:
