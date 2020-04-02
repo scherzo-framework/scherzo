@@ -1,7 +1,12 @@
-<phpunit>
+<phpunit
+    bootstrap="./test/bootstrap.php"
+>
     <testsuites>
+        <testsuite name="Scherzo unit tests">
+            <directory>./test/unit-test</directory>
+        </testsuite>
         <testsuite name="Scherzo tests">
-            <directory>./test</directory>
+            <directory>./test-not-now</directory>
         </testsuite>
     </testsuites>
 

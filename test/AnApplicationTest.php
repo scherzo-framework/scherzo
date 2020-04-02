@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-require(__DIR__.'/../vendor/autoload.php');
-
 use PHPUnit\Framework\TestCase;
 use Scherzo\App;
 use Scherzo\Request;
