@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 /**
- * Scherzo application.
+ * A response for use in end-to-end testing - does not output anything.
  *
  * @package   Scherzo
  * @link      https://github.com/scherzo-framework/scherzo
@@ -11,18 +11,10 @@
 
 namespace Scherzo;
 
-use Scherzo\Router;
-use Scherzo\Request;
 use Scherzo\Response;
 
-class App extends Router {
-    public function __invoke(Request $req = null, $res = null) {
-        if ($req === null) {
-            $req = Request::createFromGlobals();
-        }
-        if ($res === null) {
-            $res = new Response;
-        }
-        parent::__invoke($req, $res);
+class TestResponse extends Response {
+    public function send() {
+        // Don't do anything!
     }
 }

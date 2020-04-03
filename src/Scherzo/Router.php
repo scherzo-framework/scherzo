@@ -1,6 +1,13 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
+/**
+ * Build on FastRoute to process middleware and dispatch routes.
+ *
+ * @package   Scherzo
+ * @link      https://github.com/scherzo-framework/scherzo
+ * @copyright Copyright (c) 2014-2020 [Scherzo Framework](https://github.com/scherzo-framework)
+ * @license   [ISC](https://github.com/scherzo-framework/scherzo/blob/master/LICENSE)
+ */
 
 namespace Scherzo;
 
@@ -89,11 +96,13 @@ class Router {
     }
 
     public function use($callable) {
-        if ($this->isAfterRoutes) {
-            $this->middleware[1][] = $callable;
-        } else {
-            $this->middleware[0][] = $callable;
-        }
+        $part = $this->isAfterRoutes ? 1 : 0;
+        $this->middleware[$part][] = $callable;
+        return $this;
+    }
+
+    public function useDispatch() {
+        $this->isAfterRoutes = true;
         return $this;
     }
 
@@ -130,7 +139,7 @@ class Router {
         Request $req,
         Response $res
     ) : void {
-        $req->setParams($params);
+        $req->set('params', $params, true);
         if (is_array($handler)) {
             $class = $handler[0];
             if (class_exists($class)) {

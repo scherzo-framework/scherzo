@@ -6,7 +6,7 @@ use Scherzo\HttpException;
 
 class Hello {
     public function sayHelloTo($req) {
-        $name = $req->params('name');
+        $name = $req->params->get('name');
         if ($name === 'nobody') {
             throw (new HttpException(404, "Cannot find $name to say hello to"))
                 ->setInfo('name', $name)

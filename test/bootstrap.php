@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
-
 /**
- * Thrown by a Container if an entry does not exist.
+ * Scherzo test bootstrap.
  *
  * @package   Scherzo
  * @link      https://github.com/scherzo-framework/scherzo
@@ -9,12 +8,4 @@
  * @license   [ISC](https://github.com/scherzo-framework/scherzo/blob/master/LICENSE)
  */
 
-namespace Scherzo;
-
-use Scherzo\ContainerException;
-
-use Psr\Container\NotFoundExceptionInterface;
-
-class ContainerNotFoundException
-    extends ContainerException
-    implements NotFoundExceptionInterface {}
+require(__DIR__.'/../vendor/autoload.php');
