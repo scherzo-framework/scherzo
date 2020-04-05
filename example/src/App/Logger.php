@@ -2,6 +2,8 @@
 
 namespace App;
 
+use Scherzo\HttpException;
+
 class Logger {
     protected $entries = [];
 
@@ -12,5 +14,17 @@ class Logger {
 
     function getLog() : array {
         return $this->entries;
+    }
+
+    public function errorLoggingMiddleware(\Throwable $err, $req, $res): void {
+        if (is_a($err, HttpException::class)) {
+            // We don't need to log HttpExceptions.
+            throw $err;
+        }
+        $this->log('debug', 'Unexpected exception', [
+            'message' => $err->getMessage(),
+            'string' => (string)$err,
+        ]);
+        throw new HttpException(500, $err->getMessage(), $err);
     }
 }
