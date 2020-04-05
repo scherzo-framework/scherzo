@@ -15,9 +15,25 @@ use Symfony\Component\HttpFoundation;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
 class Response extends HttpFoundation\Response {
-    protected $jsonParameterBag = null;
+    /** @var ParameterBag JSON content. */
 
-    public function addJson(string $attribute, $keyOrValue, $assocValue = null) : self {
+    protected $json = null;
+
+    public function __get($name) {
+        if ($name === 'json') {
+            if ($this->json === null) {
+                $this->json = new ParameterBag;
+            }
+            return $this->json;
+        }
+    }
+
+    public function __construct(?string $content = '', int $status = 200, array $headers = []) {
+        $this->json = new ParameterBag;
+        parent::__construct($content, $status, $headers);
+    }
+
+    public function deprecated_addJson(string $attribute, $keyOrValue, $assocValue = null) : self {
 
         $current = $this->getJson($attribute);
 
@@ -39,7 +55,7 @@ class Response extends HttpFoundation\Response {
         return $this;
     }
 
-    public function getJson(string $attribute = null) {
+    public function deprecated_getJson(string $attribute = null) {
         if ($this->jsonParameterBag === null) {
             return null;
         }
@@ -51,15 +67,15 @@ class Response extends HttpFoundation\Response {
         return $this->jsonParameterBag->has($attribute) ? $this->jsonParameterBag->get($attribute) : null;
     }
 
-    public function setData($value = null) : self {
+    public function deprecated_setData($value = null) : self {
         return $this->setJson('data', $value);
     }
 
-    public function setError($value) : self {
+    public function deprecated_setError($value) : self {
         return $this->setJson('error', $value);
     }
 
-    public function setJson(string $attribute = null, $value = null) : self {
+    public function deprecated_setJson(string $attribute = null, $value = null) : self {
         if ($attribute === null) {
             // Clear all the json!
             $this->jsonParameterBag = null;
@@ -85,8 +101,10 @@ class Response extends HttpFoundation\Response {
         if (headers_sent()) {
             return;
         }
-        if ($this->jsonParameterBag !== null) {
-            $this->setContent(json_encode($this->jsonParameterBag->all()));
+        // Handle JSON content.
+        $jsonData = $this->json->all();
+        if (!empty($jsonData)) {
+            $this->setContent(json_encode($jsonData));
             $this->headers->set('Content-Type', 'application/json');
         }
         parent::prepare($req);
