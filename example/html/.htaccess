@@ -1,5 +1,12 @@
+# .htaccess
+
 RewriteEngine On
 
+# Allow the entry point to pass through.
 RewriteRule ^index.php$ - [L]
-RewriteRule ^(static|assets)(/|$) - [L]
+
+# Allow requests to static files to pass through.
+RewriteRule ^(static|assets)(\/|$) - [L]
+
+# Rewrite other requests to the entry point.
 RewriteRule ^ index.php [L]

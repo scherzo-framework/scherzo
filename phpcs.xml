@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="PHP_CodeSniffer" xsi:noNamespaceSchemaLocation="phpcs.xsd">
+    <description>Minimal coding standards.</description>
+
+    <file>src</file>
+    <file>tools</file>
+    <file>public</file>
+    <file>test</file>
+
+    <exclude-pattern>*.(phar)$</exclude-pattern>
+    <exclude-pattern>composer-setup.php$</exclude-pattern>
+
+    <arg name="basepath" value="."/>
+    <arg name="colors"/>
+    <arg name="parallel" value="75"/>
+    <arg value="p"/>
+
+    <!-- Include the whole PSR12 standard. -->
+    <rule ref="PSR12">
+    </rule>
+
+
+    <!-- Indentation should be exact not minimum. -->
+    <rule ref="Generic.WhiteSpace.ScopeIndent">
+        <properties>
+            <property name="exact" value="true"/>
+        </properties>
+    </rule>
+
+</ruleset>

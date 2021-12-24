@@ -5,8 +5,19 @@
   bootstrap="vendor/autoload.php"
   colors="true"
 >
+
+  <coverage processUncoveredFiles="true">
+    <include>
+      <directory suffix=".php">./src</directory>
+    </include>
+    <exclude>
+      <file>./src/bootstrap.php</file>
+      <file>./src/config.php</file>
+    </exclude>
+  </coverage>
+
   <testsuites>
-    <testsuite name="Scherzo unit tests">
+    <testsuite name="Home App Backend unit tests">
       <directory>./test/unit</directory>
     </testsuite>
   </testsuites>

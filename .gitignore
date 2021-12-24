@@ -1,7 +1,18 @@
 # .gitignore
 
-vendor
+# /composer.lock
+/vendor/
 
-# Test results.
-.phpunit.result.cache
-docs
+# Log files
+/log
+
+# Downloaded tooling
+/tools/*.phar
+
+# PHPUnit cache.
+*.cache
+
+# Code coverage and PHP Documentor output.
+/build
+/docs
+.phpdoc
