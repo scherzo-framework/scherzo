@@ -4,11 +4,9 @@
 
     <file>src</file>
     <file>tools</file>
-    <file>public</file>
     <file>test</file>
 
     <exclude-pattern>*.(phar)$</exclude-pattern>
-    <exclude-pattern>composer-setup.php$</exclude-pattern>
 
     <arg name="basepath" value="."/>
     <arg name="colors"/>
