@@ -1,4 +1,5 @@
 # .github/workflows/ci.yaml
+
 name: CI Test
 
 on: [push, pull_request]
@@ -66,9 +67,9 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           # BUMP PHP VERSION HERE ----------------------------------------------
-          php-version: '8.0'
+          php-version: '8.1'
           # extensions: mbstring, intl
-          tools: phpcs
+          tools: phpcs, phpunit
 
       - name: Get composer cache directory
         id: composer-cache
@@ -89,4 +90,4 @@ jobs:
         run: phpcs
 
       - name: Code coverage
-        run: phpunit --coverage-text
+        run: phpunit -c phpunit.coverage.xml --coverage-text

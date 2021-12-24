@@ -1,6 +1,6 @@
 # .gitignore
 
-# /composer.lock
+/composer.lock
 /vendor/
 
 # Log files
