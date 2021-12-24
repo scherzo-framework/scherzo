@@ -1,6 +1,6 @@
 # .github/workflows/ci.yaml
 
-name: CI Test
+name: Test
 
 on: [push, pull_request]
 

@@ -2,17 +2,16 @@
 
 Yet another breaking rewrite for v0.8.
 
-## Test
-```console
-$ php tools/phpunit.phar test --bootstrap ./vendor/autoload.php
-```
+[![Test](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml/badge.svg)](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml)
 
 ## Installation
 ```console
 composer require scherzo/scherzo
 ```
-
 ## Development on Linux
+
+[![Test](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml/badge.svg?branch=develop)](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml)
+
 ### Installation.
 ```console
 $ composer install
@@ -25,6 +24,7 @@ $ phpcbf
 $ # Check.
 $ phpcs
 ```
+
 ### Test
 ```console
 $ phpunit
@@ -38,6 +38,9 @@ $ phpunit -c phpunit.coverage.xml --coverage-html docs/coverage --coverage-text
 ```
 
 ## Development on Windows
+
+[![Test](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml/badge.svg?branch=develop)](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml)
+
 ### Installation.
 ```console
 $ # Install app.
