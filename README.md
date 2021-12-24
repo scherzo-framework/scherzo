@@ -1,40 +1,73 @@
 # Scherzo web application framework for PHP
 
-Yet another breaking rewrite for v0.6.
+Yet another breaking rewrite for v0.8.
 
-Not yet ready for release.
-
-Build status [![Build status](https://circleci.com/gh/scherzo-framework/scherzo.svg?style=svg)](https://circleci.com/gh/scherzo-framework/scherzo)
-development branch [![Build status](https://circleci.com/gh/scherzo-framework/scherzo/tree/develop.svg?style=svg)](https://circleci.com/gh/scherzo-framework/scherzo/tree/develop)
+[![Test](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml/badge.svg)](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml)
 
 ## Installation
-```bash
+```console
 composer require scherzo/scherzo
 ```
+## Development on Linux
 
-## Development
+[![Test](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml/badge.svg?branch=develop)](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml)
 
-Fork this the repo from https://github.com/scherzo-framework/scherzo and clone your fork.
-
-Install dependencies:
-```bash
-composer install
+### Installation.
+```console
+$ composer install
 ```
 
-Run tests:
-```bash
-phpunit
+### Coding standards
+```console
+$ # Fix.
+$ phpcbf
+$ # Check.
+$ phpcs
 ```
 
-### TODO
+### Test
+```console
+$ phpunit
+```
 
-#### Blocking release 0.6
-- Tests
-- Documentation
-- Standard middleware for error handling
-- Auth middleware
-- Per-route middleware (e.g. for auth)
+### Generate documentation
+```console
+$ phpdoc
+$ phpunit -c phpunit.coverage.xml --coverage-html docs/coverage --coverage-text
 
-#### Consider for release 0.7
+```
 
-#### Later
+## Development on Windows
+
+[![Test](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml/badge.svg?branch=develop)](https://github.com/scherzo-framework/scherzo/actions/workflows/ci.yaml)
+
+### Installation.
+```console
+$ # Install app.
+$ composer install
+$ # Install development tooling.
+$ php tools/install.php
+```
+
+### Coding standards
+```console
+$ # Fix.
+$ php tools/phpcbf.phar
+$ # Check.
+$ php tools/phpcs.phar
+```
+
+### Test
+```console
+$ php tools/phpunit.phar
+```
+
+### Generate documentation
+```console
+$ # PHPDoc.
+$ php tools/phpdoc.phar
+$ # Code coverage.
+$ php tools/phpunit.phar -c phpunit.coverage.xml --coverage-html docs/coverage --coverage-text
+$ # Testdox.
+$ php tools/phpunit.phar --testdox-html docs/test/index.html
+```
