@@ -12,6 +12,11 @@ use TestFixtures\MockController;
 
 final class AppTest extends TestCase
 {
+    public function testAnAppShouldHaveAVersion(): void
+    {
+        $this->assertEquals('string', gettype(App::SCHERZO_VERSION));
+    }
+
     public function testShouldRouteAGetRequest(): void
     {
         $container = new Container([
@@ -46,14 +51,17 @@ final class AppTest extends TestCase
 
         $response = $app->runRequest($request);
 
-        $this->assertEquals(
-            404,
-            $response->getStatusCode()
-        );
-        $this->assertEquals(
-            '{"error":{"title":"Not Found","message":"Could not find \/will-not-work"}}',
-            $response->getContent()
-        );
+        $this->assertEquals(404, $response->getStatusCode());
+
+        $json = json_decode($response->getContent());
+        $error = $json->error;
+
+        // All JSON errors should have a fixed title.
+        $this->assertEquals('Not Found', $error->title);
+        // All JSON errors should have a descriptive message.
+        $this->assertEquals('Could not find /will-not-work', $error->message);
+        // All JSON errors should have a status code.
+        $this->assertEquals(404, $error->status);
     }
 
     public function testShouldThrowAnHttpExceptionWhenMethodNotAllowed(): void
@@ -68,17 +76,26 @@ final class AppTest extends TestCase
 
         $response = $app->runRequest($request);
 
+        $this->assertEquals(405, $response->getStatusCode());
+        $this->assertEquals('POST, PUT', $response->headers->get('allow'));
+
+        $json = json_decode($response->getContent());
+        $error = $json->error;
+
+        // All JSON errors should have a fixed title.
+        $this->assertEquals('Method Not Allowed', $error->title);
+        // All JSON errors should have a descriptive message.
         $this->assertEquals(
-            405,
-            $response->getStatusCode()
+            'Method GET not allowed for path /',
+            $error->message,
         );
+        // All JSON errors should have a status code.
+        $this->assertEquals(405, $error->status);
+        // Method Not Allowed JSON errors should have extra info.
+        // $this->assertEquals(['POST', 'PUT'], $json['info'][]);
         $this->assertEquals(
-            'POST, PUT',
-            $response->headers->get('allow')
-        );
-        $this->assertEquals(
-            '{"error":{"title":"Method Not Allowed","message":"GET not allowed for \/"}}',
-            $response->getContent()
+            (object) ['method' => 'GET', 'path' => '/', 'allowed' => ['POST', 'PUT']],
+            $error->info,
         );
     }
 
@@ -94,13 +111,16 @@ final class AppTest extends TestCase
 
         $response = $app->runRequest($request);
 
-        $this->assertEquals(
-            500,
-            $response->getStatusCode()
-        );
-        $this->assertEquals(
-            '{"error":{"title":"Internal Server Error","message":"Division by zero"}}',
-            $response->getContent()
-        );
+        $this->assertEquals(500, $response->getStatusCode());
+
+        $json = json_decode($response->getContent());
+        $error = $json->error;
+
+        // All JSON errors should have a fixed title.
+        $this->assertEquals('Application error', $error->title);
+        // All JSON errors should have a descriptive message.
+        $this->assertEquals('Division by zero', $error->message);
+        // All JSON errors should have a status code.
+        $this->assertEquals(500, $error->status);
     }
 }

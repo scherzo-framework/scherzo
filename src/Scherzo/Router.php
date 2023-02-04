@@ -19,6 +19,11 @@ use Scherzo\HttpException;
 
 class Router
 {
+    public const GET = 'GET';
+    public const POST = 'POST';
+    public const PUT = 'PUT';
+    public const DELETE = 'DELETE';
+
     protected $dispatcher;
 
     /**
@@ -31,7 +36,7 @@ class Router
         $this->dispatcher = \FastRoute\simpleDispatcher(
             function (RouteCollector $r) use ($routes) {
                 foreach ($routes as $route) {
-                    $r->addRoute($route[0], $route[1], $route[2]);
+                    $r->addRoute(...$route);
                 }
             }
         );
@@ -52,14 +57,18 @@ class Router
 
             case Dispatcher::METHOD_NOT_ALLOWED:
                 // ... 405 Method Not Allowed
-                throw (new HttpException("$method not allowed for $path"))
+                throw (new HttpException("Method $method not allowed for path $path"))
                     ->setStatusCode(405)
+                    ->setInfo('method', $method)
+                    ->setInfo('path', $path)
+                    ->setInfo('allowed', $routeInfo[1])
                     ->setAllowedMethods($routeInfo[1]);
 
             // case Dispatcher::NOT_FOUND:
             default:
                 // ... 404 Not Found
                 throw (new HttpException("Could not find $path"))
+                    ->setInfo('path', $path)
                     ->setStatusCode(404);
         }
     }

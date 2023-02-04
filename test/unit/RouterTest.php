@@ -38,14 +38,15 @@ final class RouterTest extends TestCase
         try {
             $router->dispatch('GET', '/will-not-work');
         } catch (HttpException $e) {
-            $this->assertEquals(
-                404,
-                $e->getStatusCode()
-            );
+            // We don't need a title, this will be added by middleware.
+            $this->assertEquals(null, $e->getTitle());
+            // All JSON errors should have a descriptive message.
             $this->assertEquals(
                 'Could not find /will-not-work',
                 $e->getMessage()
             );
+            // All JSON errors should have a status code.
+            $this->assertEquals(404, $e->getStatusCode());
         }
     }
 
@@ -58,17 +59,20 @@ final class RouterTest extends TestCase
         try {
             $router->dispatch('GET', '/');
         } catch (HttpException $e) {
+            // We don't need a title, this will be added by middleware.
+            $this->assertEquals(null, $e->getTitle());
+            // All JSON errors should have a descriptive message.
             $this->assertEquals(
-                405,
-                $e->getStatusCode()
-            );
-            $this->assertEquals(
-                ['POST', 'PUT'],
-                $e->getAllowedMethods()
-            );
-            $this->assertEquals(
-                'GET not allowed for /',
+                'Method GET not allowed for path /',
                 $e->getMessage()
+            );
+            // All JSON errors should have a status code.
+            $this->assertEquals(405, $e->getStatusCode());
+            // Method Not Allowed JSON errors should have extra info.
+            $this->assertEquals(['POST', 'PUT'], $e->getAllowedMethods());
+            $this->assertEquals(
+                ['method' => 'GET', 'path' => '/', 'allowed' => ['POST', 'PUT']],
+                $e->getInfo()
             );
         }
     }

@@ -14,12 +14,16 @@ declare(strict_types=1);
 namespace Scherzo;
 
 use Scherzo\Container;
+use Scherzo\Exception;
+use Scherzo\HttpException;
 use Scherzo\Request;
 use Scherzo\Response;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
 class Route extends ParameterBag
 {
+    protected const ERROR_TITLE = 'Internal error: invalid route';
+
     protected $callback;
     protected $c;
 
@@ -31,11 +35,28 @@ class Route extends ParameterBag
         $this->callback = $routeInfo[0];
     }
 
-    public function execute(Request $request): Response
+    public function dispatch(Request $request): Response
     {
-        [$class, $method] = $this->callback;
-        $response = new Response();
-        $data = (new $class($this->c))->$method($request);
+        try {
+            [$class, $method] = $this->callback;
+            $response = new Response();
+            $handler = new $class($this->c);
+            assert(is_callable([$handler, $method]));
+        } catch (\Throwable $e) {
+            if (gettype($class) !== 'string') {
+                $type = gettype($class);
+                $err = new Exception('Class must be a string (' . $type . ' provided)', 0, $e);
+                throw $err->setTitle(self::ERROR_TITLE);
+            }
+            if (!class_exists($class)) {
+                $err = new Exception('Class \'' . $class . '\' does not exist', 0, $e);
+                throw $err->setTitle(self::ERROR_TITLE);
+            }
+            $err = new Exception($e->getMessage(), 0, $e);
+            throw $err->setTitle(self::ERROR_TITLE);
+        }
+
+        $data = $handler->$method($request);
         return $response->setData(['data' => $data]);
     }
 }
