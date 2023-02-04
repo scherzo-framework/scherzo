@@ -6,7 +6,7 @@
   colors="true"
 >
 
-  <coverage processUncoveredFiles="true">
+  <coverage includeUncoveredFiles="true">
     <include>
       <directory suffix=".php">./src</directory>
     </include>

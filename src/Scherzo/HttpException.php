@@ -34,11 +34,19 @@ declare(strict_types=1);
 
 namespace Scherzo;
 
+use Scherzo\Utils;
+
 class HttpException extends \Exception
 {
     protected $statusCode = 500;
 
     protected $allowedMethods = [];
+
+    protected $title;
+
+    protected $id;
+
+    protected $info = [];
 
     /**
      * Get the allowed methods following 405 Method Not Allowed.
@@ -51,6 +59,29 @@ class HttpException extends \Exception
     }
 
     /**
+     * Get a unique ID.
+     *
+     * @return string An v4 UUID.
+     */
+    public function getId(): string
+    {
+        if (!$this->id) {
+            $this->id = Utils::getUuid();
+        }
+        return $this->id;
+    }
+
+    /**
+     * Get any info.
+     *
+     * @return array Information.
+     */
+    public function getInfo(): array
+    {
+        return $this->info;
+    }
+
+    /**
      * Get the HTTP status code.
      *
      * @return int The HTTP error status code.
@@ -58,6 +89,16 @@ class HttpException extends \Exception
     public function getStatusCode(): int
     {
         return $this->statusCode;
+    }
+
+    /**
+     * Get the title.
+     *
+     * @return string The (human friendly) title.
+     */
+    public function getTitle(): string | null
+    {
+        return $this->title;
     }
 
     /**
@@ -85,6 +126,31 @@ class HttpException extends \Exception
         if ($code >= 400 && $code <= 599) {
             $this->statusCode = $code;
         }
+        return $this;
+    }
+
+    /**
+     * Set information (chainable).
+     *
+     * @param string $key A key.
+     * @param string $value A value.
+     * @return HttpException Returns `$this` for chaining.
+     */
+    public function setInfo(string $key, $value): self
+    {
+        $this->info[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * Set the title (chainable).
+     *
+     * @param string $title the title to display for this error.
+     * @return HttpException Returns `$this` for chaining.
+     */
+    public function setTitle(string $title): self
+    {
+        $this->title = strval($title);
         return $this;
     }
 }

@@ -14,16 +14,22 @@ declare(strict_types=1);
 namespace Scherzo;
 
 use Scherzo\Container;
+use Scherzo\Exception;
 use Scherzo\HttpException;
 use Scherzo\Router;
 use Scherzo\Route;
 use Scherzo\Request;
 use Scherzo\Response;
+use Scherzo\Utils;
 
 class App
 {
+    public const SCHERZO_VERSION = '0.9.0-dev';
+
     /** @var Container Dependencies. */
     protected $c;
+
+    protected $isProduction = true;
 
     public function __construct(Container $c)
     {
@@ -33,12 +39,15 @@ class App
     /**
      * @codeCoverageIgnore
      */
-    public static function run(array $config): void
+    public static function run(array $config, $lazy = []): void
     {
         // Create a DI container populated from $config.
         $c = new Container($config);
+        foreach ($lazy as $key => $lazyOne) {
+            $c->lazy($key, $lazyOne);
+        }
         // Create the application with the container.
-        $app = new self($c);
+        $app = new static($c);
         // Parse the HTTP request.
         $request = Request::createFromGlobals();
         // Run the app with the request and send the response.
@@ -52,35 +61,13 @@ class App
     public function runRequest(Request $request): Response
     {
         try {
-            $this->beforeAddRoute($request);
             $this->addRoute($request);
-            $this->afterAddRoute($request);
             return $this->executeRoute($request);
         } catch (HttpException $e) {
-            $this->logHttpException($e, $request);
             return $this->handleHttpException($e, $request);
         } catch (\Throwable $e) {
-                // Turn other errors into HTTP exceptions.
-            $this->logError($e, $request);
             return $this->handleError($e, $request);
         }
-    }
-
-    // Override the following hooks to add middleware.
-    protected function beforeAddRoute(Request $request): void
-    {
-    }
-
-    protected function afterAddRoute(Request $request): void
-    {
-    }
-
-    protected function logError(\Throwable $e, Request $request): void
-    {
-    }
-
-    protected function logHttpException(HttpException $e, Request $request): void
-    {
     }
 
     /**
@@ -109,9 +96,14 @@ class App
      */
     protected function handleError(\Throwable $e, Request $request): Response
     {
-        // Could have more information in debug mode e.g.
-        // $httpException = (new HttpException($e->__toString()))->setStatusCode(500);
-        $httpException = (new HttpException($e->getMessage()))->setStatusCode(500);
+        if (!is_a($e, Exception::class)) {
+            $e = new Exception($e->getMessage(), 0, $e);
+            $e->setTitle('Application error');
+        }
+
+        $httpException = (new HttpException($e->getMessage(), $e->getCode(), $e))
+            ->setStatusCode(500)
+            ->setTitle($e->getTitle());
         return $this->handleHttpException($httpException, $request);
     }
 
@@ -127,13 +119,36 @@ class App
         $statusCode = $e->getStatusCode();
         // Don't create safe HTML, all responses are sent as JSON.
         $response->setStatusCode($statusCode);
-        $response->setEncodingOptions(0);
-        $response->setData(
-            ['error' => [
-            'title' => $response::$statusTexts[$statusCode],
+        // print_r($this);
+        // throw($e);
+        $data = [
+            'title' => $e->getTitle() ?? $response::$statusTexts[$statusCode],
             'message' => $e->getMessage(),
-            ]]
-        );
+            'status' => $statusCode,
+        ];
+        $info = $e->getInfo();
+        if ($info) {
+            $data['info'] = $info;
+        }
+        if (!$this->isProduction) {
+            $debug = [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+            ];
+            $previous = $e->getPrevious();
+            if ($previous) {
+                $debug['previous'] = [
+                    'title' => Utils::getClass($previous),
+                    'message' => $previous->getMessage(),
+                    'file' => $previous->getFile(),
+                    'line' => $previous->getLine(),
+                    'trace' => $previous->getTrace(),
+                ];
+            }
+            $data['debug'] = $debug;
+        }
+        $response->setData(['error' => $data]);
         if ($statusCode === 405) {
             $response->headers->set('Allow', implode(', ', $e->getAllowedMethods()));
         }
@@ -149,7 +164,7 @@ class App
     protected function executeRoute(Request $request): Response
     {
         // $route = $request->attributes->get('route');
-        return $request->route->execute($request);
+        return $request->route->dispatch($request);
     }
 
     /**

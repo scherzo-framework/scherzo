@@ -14,54 +14,15 @@ final class ContainerTest extends TestCase
     {
         $c = (new Container())->set('value', true);
 
-        $this->assertEquals(
-            true,
-            $c->get('value')
-        );
-    }
-
-    public function testShouldSetAndGetAClosure(): void
-    {
-        $c = (new Container())->set('closure', function () {
-            return new \StdClass();
-        });
-
-        $obj = $c->get('closure');
-
-        $this->assertEquals(
-            $obj,
-            $c->get('closure')
-        );
-    }
-
-    public function testAClosureShouldBePassedTheContainer(): void
-    {
-        $c = (new Container())->set('closure', function (Container $c) {
-            $obj = new \StdClass();
-            $obj->container = $c;
-            return $obj;
-        });
-
-        $obj = $c->get('closure');
-
-        $this->assertEquals(
-            $obj,
-            $c->get('closure')
-        );
+        $this->assertSame(true, $c->get('value'));
     }
 
     public function testHasShouldBeTrueIffAnEntryExists(): void
     {
         $c = (new Container())->set('value', true);
 
-        $this->assertEquals(
-            true,
-            $c->has('value'),
-        );
-        $this->assertEquals(
-            false,
-            $c->has('anotherValue'),
-        );
+        $this->assertTrue($c->has('value'));
+        $this->assertFalse($c->has('anotherValue'));
     }
 
     public function testShouldThrowAPsr11ExceptionWhenAKeyDoesNotExist(): void
@@ -69,7 +30,7 @@ final class ContainerTest extends TestCase
         $c = new Container();
 
         $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectExceptionMessage('Identifier "value" is not defined.');
+        $this->expectExceptionMessage("Key 'value' does not exist in this container");
 
         $c->get('value');
     }

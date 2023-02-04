@@ -10,8 +10,8 @@ if (file_exists($file)) {
 }
 
 // PHPUnit.
-$file = file_get_contents('https://phar.phpunit.de/phpunit-9.phar');
-file_put_contents('tools/phpunit.phar', $file);
+// $file = file_get_contents('https://phar.phpunit.de/phpunit-9.phar');
+// file_put_contents('tools/phpunit.phar', $file);
 
 // PHP Code Sniffer.
 $file = file_get_contents('https://squizlabs.github.io/PHP_CodeSniffer/phpcbf.phar');

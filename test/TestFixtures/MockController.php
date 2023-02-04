@@ -11,8 +11,10 @@ class MockController
         $id = $request->route->getInt('id');
 
         return [
-            'id' => $id,
-            'name' => "Item $id",
+            'data' => [
+                'id' => $id,
+                'name' => "Item $id",
+            ],
         ];
     }
 
