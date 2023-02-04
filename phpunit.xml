@@ -5,7 +5,6 @@
   bootstrap="vendor/autoload.php"
   colors="true"
 >
-  <coverage/>
   <testsuites>
     <testsuite name="Scherzo unit tests">
       <directory>./test/unit</directory>
