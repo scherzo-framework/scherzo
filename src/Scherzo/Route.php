@@ -41,22 +41,41 @@ class Route extends ParameterBag
             [$class, $method] = $this->callback;
             $response = new Response();
             $handler = new $class($this->c);
-            assert(is_callable([$handler, $method]));
+            $data = $handler->$method($request, $response);
+        } catch (HttpException $e) {
+            // HttpExceptions are OK.
+            throw ($e);
+        } catch (Exception $e) {
+            // Scherzo\Exceptions are OK.
+            throw ($e);
         } catch (\Throwable $e) {
             if (gettype($class) !== 'string') {
                 $type = gettype($class);
-                $err = new Exception('Class must be a string (' . $type . ' provided)', 0, $e);
+                $err = new Exception("Class must be a string ($type provided)", 0, $e);
                 throw $err->setTitle(self::ERROR_TITLE);
             }
             if (!class_exists($class)) {
-                $err = new Exception('Class \'' . $class . '\' does not exist', 0, $e);
+                $err = new Exception("Class '$class' does not exist", 0, $e);
                 throw $err->setTitle(self::ERROR_TITLE);
             }
-            $err = new Exception($e->getMessage(), 0, $e);
-            throw $err->setTitle(self::ERROR_TITLE);
+            if (!method_exists($class, $method)) {
+                $err = new Exception("Method '$method' does not exist in class '$class'", 0, $e);
+                throw $err->setTitle(self::ERROR_TITLE);
+            }
+            // If we have got here the definition of the route is OK, there has
+            // been an error in executing it.
+            throw $e;
         }
 
-        $data = $handler->$method($request);
-        return $response->setData(['data' => $data]);
+        switch (gettype($data)) {
+            case 'array':
+                // JSON data.
+                return $response->setData($data);
+            case 'string':
+                // HTML.
+                return $response->setContent($data);
+            default:
+                return $response;
+        }
     }
 }

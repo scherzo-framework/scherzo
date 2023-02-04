@@ -39,12 +39,15 @@ class App
     /**
      * @codeCoverageIgnore
      */
-    public static function run(array $config): void
+    public static function run(array $config, $lazy = []): void
     {
         // Create a DI container populated from $config.
         $c = new Container($config);
+        foreach ($lazy as $key => $lazyOne) {
+            $c->lazy($key, $lazyOne);
+        }
         // Create the application with the container.
-        $app = new self($c);
+        $app = new static($c);
         // Parse the HTTP request.
         $request = Request::createFromGlobals();
         // Run the app with the request and send the response.
@@ -116,7 +119,8 @@ class App
         $statusCode = $e->getStatusCode();
         // Don't create safe HTML, all responses are sent as JSON.
         $response->setStatusCode($statusCode);
-        $response->setEncodingOptions(0);
+        // print_r($this);
+        // throw($e);
         $data = [
             'title' => $e->getTitle() ?? $response::$statusTexts[$statusCode],
             'message' => $e->getMessage(),

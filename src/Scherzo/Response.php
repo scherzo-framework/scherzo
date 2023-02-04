@@ -13,8 +13,16 @@ declare(strict_types=1);
 
 namespace Scherzo;
 
-use Symfony\Component\HttpFoundation\JsonResponse as BaseResponse;
+use Symfony\Component\HttpFoundation\Response as BaseResponse;
 
 class Response extends BaseResponse
 {
+    public function setData(array $data)
+    {
+        $this->headers->set('Content-Type', 'application/json');
+        $json = json_encode($data);
+
+        $this->setContent($json);
+        return $this;
+    }
 }

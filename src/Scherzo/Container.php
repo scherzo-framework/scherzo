@@ -15,15 +15,29 @@ namespace Scherzo;
 
 use Pimple\Container as PimpleContainer;
 use Psr\Container\ContainerInterface;
+use Scherzo\ContainerNotFoundException;
 
 class Container extends PimpleContainer implements ContainerInterface
 {
-    public function get(string $id)
+    protected $lazy = [];
+
+    public function get(string $id): mixed
     {
-        return $this->offsetGet($id);
+        if ($this->offsetExists($id)) {
+            return $this->offsetGet($id);
+        }
+
+        if (!array_key_exists($id, $this->lazy)) {
+            $e = new ContainerNotFoundException("Key '$id' does not exist in this container");
+            throw $e;
+        }
+
+        $entry = call_user_func($this->lazy[$id], $this);
+        $this->offsetSet($id, $entry);
+        return $entry;
     }
 
-    public function set(string $id, $value)
+    public function set(string $id, mixed $value): self
     {
         $this->offsetSet($id, $value);
         return $this;
@@ -32,5 +46,11 @@ class Container extends PimpleContainer implements ContainerInterface
     public function has(string $id): bool
     {
         return $this->offsetExists($id);
+    }
+
+    public function lazy(string $id, mixed $callback): self
+    {
+        $this->lazy[$id] = $callback;
+        return $this;
     }
 }
