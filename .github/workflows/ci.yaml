@@ -18,7 +18,7 @@ jobs:
           - '7.4' # Until 28 Nov 2022.
           - '8.0' # Until 26 Nov 2023.
           - '8.1' # Until 25 Nov 2024.
-          - '8.2' # Nightly.
+          - '8.2' # Until 8 Dec 2025.
 
         phpunit-versions: ['latest']
 
