@@ -13,16 +13,35 @@ declare(strict_types=1);
 
 namespace Scherzo;
 
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response as BaseResponse;
 
 class Response extends BaseResponse
 {
-    public function setData(array $data)
-    {
-        $this->headers->set('Content-Type', 'application/json');
-        $json = json_encode($data);
+    protected $data;
 
-        $this->setContent($json);
+    public const CONTENT_TYPE_JSON = 'application/json';
+
+    public function setData(array $data): static
+    {
+        // Only set the data now, the content is generated in `$this->prepare`.
+        $this->data = $data;
+
         return $this;
+    }
+
+    public function prepare(Request $request): static
+    {
+        if ($this->data !== null) {
+            $this->prepareDataResponse($request);
+        }
+        return parent::prepare($request);
+    }
+
+    protected function prepareDataResponse(Request $request): void
+    {
+        $this->headers->set('Content-Type', static::CONTENT_TYPE_JSON);
+        $json = json_encode($this->data);
+        $this->setContent($json);
     }
 }

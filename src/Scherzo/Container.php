@@ -46,7 +46,7 @@ class Container extends PimpleContainer implements ContainerInterface
         return $entry;
     }
 
-    public function set(string $id, mixed $value): self
+    public function set(string $id, mixed $value): static
     {
         $this->offsetSet($id, $value);
         return $this;
@@ -57,7 +57,7 @@ class Container extends PimpleContainer implements ContainerInterface
         return $this->offsetExists($id);
     }
 
-    public function lazy(string $id, mixed $callback): self
+    public function lazy(string $id, mixed $callback): static
     {
         $this->lazy[$id] = $callback;
         return $this;

@@ -23,7 +23,7 @@ use Scherzo\Utils;
 
 class App
 {
-    public const SCHERZO_VERSION = '0.9.1';
+    public const SCHERZO_VERSION = '0.9.2';
 
     /** @var Container Dependencies. */
     protected $c;
@@ -82,11 +82,18 @@ class App
         $request->route = $route;
     }
 
+    /**
+     * Override this to use your own request class.
+     */
     protected function createRequest(): Request
     {
         return Request::createFromGlobals();
     }
 
+    /**
+     * Override this to use your own response class (e.g. to implement JSON
+     * pretty printing).
+     */
     protected function createResponse(): Response
     {
         return new Response();

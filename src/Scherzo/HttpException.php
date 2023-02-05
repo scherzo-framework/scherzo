@@ -62,7 +62,7 @@ class HttpException extends \Exception
      * @param array<int, string> $methods A list of allowed methods.
      * @return HttpException Returns `$this` for chaining.
      */
-    public function setAllowedMethods(array $methods): self
+    public function setAllowedMethods(array $methods): static
     {
         $this->allowedMethods = $methods;
         return $this;
@@ -98,7 +98,7 @@ class HttpException extends \Exception
      * @param string $value A value.
      * @return HttpException Returns `$this` for chaining.
      */
-    public function setInfo(string $key, $value): self
+    public function setInfo(string $key, $value): static
     {
         $this->info[$key] = $value;
         return $this;
@@ -122,7 +122,7 @@ class HttpException extends \Exception
      * @param int $code An HTTP error status code.
      * @return HttpException Returns `$this` for chaining.
      */
-    public function setStatusCode(int $code): self
+    public function setStatusCode(int $code): static
     {
         if ($code >= 400 && $code <= 599) {
             $this->statusCode = $code;
@@ -149,7 +149,7 @@ class HttpException extends \Exception
      * @param string $title the title to display for this error.
      * @return HttpException Returns `$this` for chaining.
      */
-    public function setTitle(string $title): self
+    public function setTitle(string $title): static
     {
         try {
             $this->title = strval($title);
