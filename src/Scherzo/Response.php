@@ -20,7 +20,7 @@ class Response extends BaseResponse
 {
     protected $data;
 
-    const CONTENT_TYPE_JSON = 'application/json';
+    public const CONTENT_TYPE_JSON = 'application/json';
 
     public function setData(array $data): static
     {
