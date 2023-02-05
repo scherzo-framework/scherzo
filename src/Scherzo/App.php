@@ -23,7 +23,7 @@ use Scherzo\Utils;
 
 class App
 {
-    public const SCHERZO_VERSION = '0.9.0-dev';
+    public const SCHERZO_VERSION = '0.9.1';
 
     /** @var Container Dependencies. */
     protected $c;
