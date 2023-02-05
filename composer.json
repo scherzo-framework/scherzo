@@ -5,10 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "App\\": "example/src/App/",
-            "Scherzo\\": "src/Scherzo/",
-            "Service\\": "src/Service/",
-            "TestFixtures\\": "test/TestFixtures/"
+            "Scherzo\\": "src/Scherzo/"
         }
     },
     "authors": [
