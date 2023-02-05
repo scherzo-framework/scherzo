@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Scherzo;
 
 use Psr\Container\NotFoundExceptionInterface;
-use Scherzo\Exception;
+use Scherzo\HttpException;
 
-class ContainerNotFoundException extends Exception implements NotFoundExceptionInterface
+class ContainerNotFoundException extends HttpException implements NotFoundExceptionInterface
 {
 }

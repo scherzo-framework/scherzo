@@ -17,7 +17,7 @@ final class RouterTest extends TestCase
             ['GET', '/{id:.+}', [MockController::class, 'getIndex']],
         ]);
 
-        [$route, $params] = $router->dispatch('GET', '/123');
+        [$route, $params] = $router->match('GET', '/123');
 
         $this->assertEquals(
             [MockController::class, 'getIndex'],
@@ -36,10 +36,10 @@ final class RouterTest extends TestCase
         ]);
 
         try {
-            $router->dispatch('GET', '/will-not-work');
+            $router->match('GET', '/will-not-work');
         } catch (HttpException $e) {
-            // We don't need a title, this will be added by middleware.
-            $this->assertEquals(null, $e->getTitle());
+            // All JSON errors should have a title.
+            $this->assertEquals('Not Found', $e->getTitle());
             // All JSON errors should have a descriptive message.
             $this->assertEquals(
                 'Could not find /will-not-work',
@@ -57,10 +57,10 @@ final class RouterTest extends TestCase
         ]);
 
         try {
-            $router->dispatch('GET', '/');
+            $router->match('GET', '/');
         } catch (HttpException $e) {
-            // We don't need a title, this will be added by middleware.
-            $this->assertEquals(null, $e->getTitle());
+            // All JSON errors should have a title.
+            $this->assertEquals('Method Not Allowed', $e->getTitle());
             // All JSON errors should have a descriptive message.
             $this->assertEquals(
                 'Method GET not allowed for path /',

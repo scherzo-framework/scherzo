@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Scherzo;
 
 use Scherzo\Container;
-use Scherzo\Exception;
 use Scherzo\HttpException;
 use Scherzo\Router;
 use Scherzo\Route;
@@ -24,50 +23,47 @@ use Scherzo\Utils;
 
 class App
 {
-    public const SCHERZO_VERSION = '0.9.0-dev';
+    public const SCHERZO_VERSION = '0.9.1';
 
     /** @var Container Dependencies. */
     protected $c;
 
-    protected $isProduction = true;
-
-    public function __construct(Container $c)
-    {
-        $this->c = $c;
-    }
-
-    /**
-     * @codeCoverageIgnore
-     */
-    public static function run(array $config, $lazy = []): void
+    public function __construct(array $routes, array $config = [], array $lazy = [])
     {
         // Create a DI container populated from $config.
-        $c = new Container($config);
+        $this->c = new Container($config);
+        // Add lazy-loaded services.
         foreach ($lazy as $key => $lazyOne) {
-            $c->lazy($key, $lazyOne);
+            $this->c->lazy($key, $lazyOne);
         }
-        // Create the application with the container.
-        $app = new static($c);
-        // Parse the HTTP request.
-        $request = Request::createFromGlobals();
-        // Run the app with the request and send the response.
-        $response = $app->runRequest($request);
-        $app->sendResponse($response);
+
+        // Create a router prepared with the routes.
+        $router = new Router($routes);
+        $this->c->set('router', $router);
     }
 
     /**
      * Run the application for the request.
      */
-    public function runRequest(Request $request): Response
+    public function run(Request $request = null, bool $send = true): Response
     {
-        try {
-            $this->addRoute($request);
-            return $this->executeRoute($request);
-        } catch (HttpException $e) {
-            return $this->handleHttpException($e, $request);
-        } catch (\Throwable $e) {
-            return $this->handleError($e, $request);
+        // If we haven't been provided one (e.g. by a test), create the request.
+        if ($request === null) {
+            $request = $this->createRequest();
         }
+        try {
+            $response = $this->createResponse();
+            $this->addRoute($request);
+            $this->dispatchRoute($request, $response);
+        } catch (HttpException $e) {
+            $this->handleHttpException($e, $request, $response);
+        } catch (\Throwable $e) {
+            $this->handleError($e, $request, $response);
+        }
+        if ($send) {
+            $this->sendResponse($response, $request);
+        }
+        return $response;
     }
 
     /**
@@ -77,15 +73,45 @@ class App
      */
     protected function addRoute(Request $request): void
     {
-        // Build the routes.
-        $routes = $this->c->get('routes');
-        $router = new Router($routes);
         $method = $request->getMethod();
         $path = $request->getPathInfo();
-        $routeInfo = $router->dispatch($method, $path);
+        $routeInfo = $this->c->get('router')->match($method, $path);
+
         $route = new Route($this->c, $routeInfo);
 
         $request->route = $route;
+    }
+
+    protected function createRequest(): Request
+    {
+        return Request::createFromGlobals();
+    }
+
+    protected function createResponse(): Response
+    {
+        return new Response();
+    }
+
+    /**
+     * Middleware to execute a route.
+     *
+     * @param Request The current request.
+     * @return Response The response (maybe an error response).
+     */
+    protected function dispatchRoute(Request $request, Response $response): void
+    {
+        // $route = $request->attributes->get('route');
+        $content =  $request->route->dispatch($request, $response);
+        switch (gettype($content)) {
+            case 'array':
+                // JSON data.
+                $response->setData($content);
+                return;
+            case 'string':
+                // HTML.
+                $response->setContent($content);
+                return;
+        }
     }
 
     /**
@@ -94,17 +120,12 @@ class App
      * @param Request The current request.
      * @return Response An error response.
      */
-    protected function handleError(\Throwable $e, Request $request): Response
+    protected function handleError(\Throwable $e, Request $request, Response $response): void
     {
-        if (!is_a($e, Exception::class)) {
-            $e = new Exception($e->getMessage(), 0, $e);
-            $e->setTitle('Application error');
-        }
-
         $httpException = (new HttpException($e->getMessage(), $e->getCode(), $e))
             ->setStatusCode(500)
-            ->setTitle($e->getTitle());
-        return $this->handleHttpException($httpException, $request);
+            ->setTitle('Application error');
+        $this->handleHttpException($httpException, $request, $response);
     }
 
     /**
@@ -113,9 +134,8 @@ class App
      * @param Request The current request.
      * @return Response An error response.
      */
-    protected function handleHttpException(HttpException $e, Request $request): Response
+    protected function handleHttpException(HttpException $e, Request $request, Response $response): void
     {
-        $response = new Response();
         $statusCode = $e->getStatusCode();
         // Don't create safe HTML, all responses are sent as JSON.
         $response->setStatusCode($statusCode);
@@ -130,7 +150,7 @@ class App
         if ($info) {
             $data['info'] = $info;
         }
-        if (!$this->isProduction) {
+        if ($this->c->has('debug') && $this->c->get('debug') === true) {
             $debug = [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -152,19 +172,12 @@ class App
         if ($statusCode === 405) {
             $response->headers->set('Allow', implode(', ', $e->getAllowedMethods()));
         }
-        return $response;
+        $this->logError($e, $data);
     }
 
-    /**
-     * Middleware to execute a route.
-     *
-     * @param Request The current request.
-     * @return Response An error response.
-     */
-    protected function executeRoute(Request $request): Response
+    protected function logError(\Throwable $e, array $info): void
     {
-        // $route = $request->attributes->get('route');
-        return $request->route->dispatch($request);
+        // Override to log errors.
     }
 
     /**
@@ -173,8 +186,9 @@ class App
      * @codeCoverageIgnore
      * @param Request The current request.
      */
-    protected function sendResponse(Response $response): void
+    protected function sendResponse(Response $response, Request $request): void
     {
+        $response->prepare($request);
         $response->send();
     }
 }
