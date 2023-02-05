@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Scherzo;
 
 use Scherzo\Container;
-use Scherzo\Exception;
 use Scherzo\HttpException;
 use Scherzo\Request;
 use Scherzo\Response;
@@ -35,7 +34,7 @@ class Route extends ParameterBag
         $this->callback = $routeInfo[0];
     }
 
-    public function dispatch(Request $request): Response
+    public function dispatch(Request $request, Response $response): array|string|null
     {
         try {
             [$class, $method] = $this->callback;
@@ -45,22 +44,19 @@ class Route extends ParameterBag
         } catch (HttpException $e) {
             // HttpExceptions are OK.
             throw ($e);
-        } catch (Exception $e) {
-            // Scherzo\Exceptions are OK.
-            throw ($e);
         } catch (\Throwable $e) {
             if (gettype($class) !== 'string') {
                 $type = gettype($class);
-                $err = new Exception("Class must be a string ($type provided)", 0, $e);
-                throw $err->setTitle(self::ERROR_TITLE);
+                throw (new HttpException("Class must be a string ($type provided)", 0, $e))
+                    ->setTitle(self::ERROR_TITLE);
             }
             if (!class_exists($class)) {
-                $err = new Exception("Class '$class' does not exist", 0, $e);
-                throw $err->setTitle(self::ERROR_TITLE);
+                throw (new HttpException("Class '$class' does not exist", 0, $e, 0, $e))
+                    ->setTitle(self::ERROR_TITLE);
             }
             if (!method_exists($class, $method)) {
-                $err = new Exception("Method '$method' does not exist in class '$class'", 0, $e);
-                throw $err->setTitle(self::ERROR_TITLE);
+                throw (new HttpException("Method '$method' does not exist in class '$class'", 0, $e))
+                    ->setTitle(self::ERROR_TITLE);
             }
             // If we have got here the definition of the route is OK, there has
             // been an error in executing it.
@@ -68,14 +64,10 @@ class Route extends ParameterBag
         }
 
         switch (gettype($data)) {
-            case 'array':
-                // JSON data.
-                return $response->setData($data);
-            case 'string':
-                // HTML.
-                return $response->setContent($data);
-            default:
-                return $response;
+            case 'array': // JSON data.
+            case 'string': // HTML.
+                return $data;
         }
+        return null;
     }
 }

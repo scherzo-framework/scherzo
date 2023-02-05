@@ -34,8 +34,6 @@ declare(strict_types=1);
 
 namespace Scherzo;
 
-use Scherzo\Utils;
-
 class HttpException extends \Exception
 {
     protected $statusCode = 500;
@@ -56,6 +54,18 @@ class HttpException extends \Exception
     public function getAllowedMethods(): array
     {
         return $this->allowedMethods;
+    }
+
+    /**
+     * Set the allowed methods following 405 Method Not Allowed (chainable).
+     *
+     * @param array<int, string> $methods A list of allowed methods.
+     * @return HttpException Returns `$this` for chaining.
+     */
+    public function setAllowedMethods(array $methods): self
+    {
+        $this->allowedMethods = $methods;
+        return $this;
     }
 
     /**
@@ -82,6 +92,19 @@ class HttpException extends \Exception
     }
 
     /**
+     * Set information (chainable).
+     *
+     * @param string $key A key.
+     * @param string $value A value.
+     * @return HttpException Returns `$this` for chaining.
+     */
+    public function setInfo(string $key, $value): self
+    {
+        $this->info[$key] = $value;
+        return $this;
+    }
+
+    /**
      * Get the HTTP status code.
      *
      * @return int The HTTP error status code.
@@ -89,28 +112,6 @@ class HttpException extends \Exception
     public function getStatusCode(): int
     {
         return $this->statusCode;
-    }
-
-    /**
-     * Get the title.
-     *
-     * @return string The (human friendly) title.
-     */
-    public function getTitle(): string | null
-    {
-        return $this->title;
-    }
-
-    /**
-     * Set the allowed methods following 405 Method Not Allowed (chainable).
-     *
-     * @param array<int, string> $methods A list of allowed methods.
-     * @return HttpException Returns `$this` for chaining.
-     */
-    public function setAllowedMethods(array $methods): self
-    {
-        $this->allowedMethods = $methods;
-        return $this;
     }
 
     /**
@@ -130,16 +131,16 @@ class HttpException extends \Exception
     }
 
     /**
-     * Set information (chainable).
+     * Get the title.
      *
-     * @param string $key A key.
-     * @param string $value A value.
-     * @return HttpException Returns `$this` for chaining.
+     * @return string The (human friendly) title.
      */
-    public function setInfo(string $key, $value): self
+    public function getTitle(): string
     {
-        $this->info[$key] = $value;
-        return $this;
+        if ($this->title === null) {
+            $this->title = Response::$statusTexts[$this->getStatusCode()];
+        }
+        return $this->title;
     }
 
     /**
@@ -150,7 +151,11 @@ class HttpException extends \Exception
      */
     public function setTitle(string $title): self
     {
-        $this->title = strval($title);
+        try {
+            $this->title = strval($title);
+        } catch (\Throwable $e) {
+            // If not a valid string leave the title untouched.
+        }
         return $this;
     }
 }

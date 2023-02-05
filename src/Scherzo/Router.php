@@ -27,9 +27,9 @@ class Router
     protected $dispatcher;
 
     /**
-     * The router is created with an array of route.
+     * The router is created with an array of routes.
      *
-     * @param array<int, array> $routes A list of route configurations.
+     * @param array $routes A list of route configurations.
      */
     public function __construct(array $routes)
     {
@@ -43,9 +43,9 @@ class Router
     }
 
     /**
-     * Dispatch an HTTP request.
+     * Match a route to a method and path or throw an exception.
      */
-    public function dispatch(string $method, string $path): array
+    public function match(string $method, string $path): array
     {
         $routeInfo = $this->dispatcher->dispatch($method, $path);
 
