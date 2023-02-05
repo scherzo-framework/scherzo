@@ -82,11 +82,18 @@ class App
         $request->route = $route;
     }
 
+    /**
+     * Override this to use your own request class.
+     */
     protected function createRequest(): Request
     {
         return Request::createFromGlobals();
     }
 
+    /**
+     * Override this to use your own response class (e.g. to implement JSON
+     * pretty printing).
+     */
     protected function createResponse(): Response
     {
         return new Response();

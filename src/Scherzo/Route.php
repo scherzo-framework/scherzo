@@ -38,7 +38,6 @@ class Route extends ParameterBag
     {
         try {
             [$class, $method] = $this->callback;
-            $response = new Response();
             $handler = new $class($this->c);
             $data = $handler->$method($request, $response);
         } catch (HttpException $e) {
@@ -48,15 +47,15 @@ class Route extends ParameterBag
             if (gettype($class) !== 'string') {
                 $type = gettype($class);
                 throw (new HttpException("Class must be a string ($type provided)", 0, $e))
-                    ->setTitle(self::ERROR_TITLE);
+                    ->setTitle(static::ERROR_TITLE);
             }
             if (!class_exists($class)) {
                 throw (new HttpException("Class '$class' does not exist", 0, $e, 0, $e))
-                    ->setTitle(self::ERROR_TITLE);
+                    ->setTitle(static::ERROR_TITLE);
             }
             if (!method_exists($class, $method)) {
                 throw (new HttpException("Method '$method' does not exist in class '$class'", 0, $e))
-                    ->setTitle(self::ERROR_TITLE);
+                    ->setTitle(static::ERROR_TITLE);
             }
             // If we have got here the definition of the route is OK, there has
             // been an error in executing it.
