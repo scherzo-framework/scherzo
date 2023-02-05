@@ -19,20 +19,15 @@ final class AppTest extends TestCase
 
     public function testShouldRouteAGetRequest(): void
     {
-        $container = new Container([
-            'routes' => [
-                ['GET', '/{id:.+}', [MockController::class, 'getIndex']],
-            ],
-        ]);
-        $app = new App($container);
+        $routes = [
+            ['GET', '/{id:.+}', [MockController::class, 'getIndex']],
+        ];
+        $app = new App($routes);
         $request = Request::create('/123');
 
-        $response = $app->runRequest($request);
+        $response = $app->run($request, false);
 
-        $this->assertEquals(
-            200,
-            $response->getStatusCode()
-        );
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals(
             '{"data":{"id":123,"name":"Item 123"}}',
             $response->getContent()
@@ -41,15 +36,14 @@ final class AppTest extends TestCase
 
     public function testShouldThrowAnHttpExceptionWhenNotFound(): void
     {
-        $container = new Container([
-            'routes' => [
-                ['GET', '/', [MockController::class, 'getIndex']],
-            ],
-        ]);
-        $app = new App($container);
+        $routes = [
+            ['GET', '/', [MockController::class, 'getIndex']],
+        ];
+        $app = new App($routes);
+
         $request = Request::create('/will-not-work');
 
-        $response = $app->runRequest($request);
+        $response = $app->run($request, false);
 
         $this->assertEquals(404, $response->getStatusCode());
 
@@ -66,15 +60,14 @@ final class AppTest extends TestCase
 
     public function testShouldThrowAnHttpExceptionWhenMethodNotAllowed(): void
     {
-        $container = new Container([
-            'routes' => [
-                [['POST', 'PUT'], '/', [MockController::class, 'getIndex']],
-            ],
-        ]);
-        $app = new App($container);
+        $routes = [
+            [['POST', 'PUT'], '/', [MockController::class, 'getIndex']],
+        ];
+        $app = new App($routes);
+
         $request = Request::create('/');
 
-        $response = $app->runRequest($request);
+        $response = $app->run($request, false);
 
         $this->assertEquals(405, $response->getStatusCode());
         $this->assertEquals('POST, PUT', $response->headers->get('allow'));
@@ -101,15 +94,14 @@ final class AppTest extends TestCase
 
     public function testShouldHandleAnError(): void
     {
-        $container = new Container([
-            'routes' => [
-                ['GET', '/divide-by-zero', [MockController::class, 'divideByZero']],
-            ],
-        ]);
-        $app = new App($container);
+        $routes = [
+            ['GET', '/divide-by-zero', [MockController::class, 'divideByZero']],
+        ];
+        $app = new App($routes);
+
         $request = Request::create('/divide-by-zero');
 
-        $response = $app->runRequest($request);
+        $response = $app->run($request, false);
 
         $this->assertEquals(500, $response->getStatusCode());
 

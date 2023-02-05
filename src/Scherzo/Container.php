@@ -29,10 +29,19 @@ class Container extends PimpleContainer implements ContainerInterface
 
         if (!array_key_exists($id, $this->lazy)) {
             $e = new ContainerNotFoundException("Key '$id' does not exist in this container");
+            $e->setTitle('Container key not found');
+            $e->setInfo('key', $id);
             throw $e;
         }
 
-        $entry = call_user_func($this->lazy[$id], $this);
+        $classOrFn = $this->lazy[$id];
+        if (is_callable($classOrFn)) {
+            $entry = call_user_func($this->lazy[$id], $this);
+        } elseif (class_exists($classOrFn)) {
+            $entry = new $classOrFn($this);
+        } else {
+            $entry = $classOrFn;
+        }
         $this->offsetSet($id, $entry);
         return $entry;
     }
