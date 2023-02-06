@@ -49,5 +49,8 @@ class Utils
 
         // Convert the binary data to a string.
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+        // Alternative implementation.
+        // $id = str_split(bin2hex($bytes), 4);
+        // return "{$id[0]}{$id[1]}-{$id[2]}-{$id[3]}-{$id[4]}-{$id[5]}{$id[6]}{$id[7]}";
     }
 }

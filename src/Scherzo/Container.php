@@ -5,7 +5,7 @@
  *
  * @package   Scherzo
  * @link      https://github.com/scherzo-framework/scherzo
- * @copyright Copyright (c) 2014-2021 [Scherzo Framework](https://github.com/scherzo-framework)
+ * @copyright Copyright (c) 2014-2022 [Scherzo Framework](https://github.com/scherzo-framework)
  * @license   [MIT](https://github.com/scherzo-framework/scherzo/blob/master/LICENSE)
  */
 
@@ -46,12 +46,6 @@ class Container extends PimpleContainer implements ContainerInterface
         return $entry;
     }
 
-    public function set(string $id, mixed $value): static
-    {
-        $this->offsetSet($id, $value);
-        return $this;
-    }
-
     public function has(string $id): bool
     {
         return $this->offsetExists($id);
@@ -60,6 +54,21 @@ class Container extends PimpleContainer implements ContainerInterface
     public function lazy(string $id, mixed $callback): static
     {
         $this->lazy[$id] = $callback;
+        return $this;
+    }
+
+    public function safeGet(string $id, mixed $default = null): mixed
+    {
+        try {
+            return $this->get($id);
+        } catch (ContainerNotFoundException $e) {
+            return $default;
+        }
+    }
+
+    public function set(string $id, mixed $value): static
+    {
+        $this->offsetSet($id, $value);
         return $this;
     }
 }

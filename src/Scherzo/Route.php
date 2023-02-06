@@ -5,7 +5,7 @@
  *
  * @package   Scherzo
  * @link      https://github.com/scherzo-framework/scherzo
- * @copyright Copyright (c) 2021 [Scherzo Framework](https://github.com/scherzo-framework)
+ * @copyright Copyright (c) 2021-22 [Scherzo Framework](https://github.com/scherzo-framework)
  * @license   [MIT](https://github.com/scherzo-framework/scherzo/blob/master/LICENSE)
  */
 
@@ -50,7 +50,7 @@ class Route extends ParameterBag
                     ->setTitle(static::ERROR_TITLE);
             }
             if (!class_exists($class)) {
-                throw (new HttpException("Class '$class' does not exist", 0, $e, 0, $e))
+                throw (new HttpException("Class '$class' does not exist", 0, $e))
                     ->setTitle(static::ERROR_TITLE);
             }
             if (!method_exists($class, $method)) {

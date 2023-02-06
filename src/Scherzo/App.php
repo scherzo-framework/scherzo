@@ -5,7 +5,7 @@
  *
  * @package   Scherzo
  * @link      https://github.com/scherzo-framework/scherzo
- * @copyright Copyright (c) 2014-2021 [Scherzo Framework](https://github.com/scherzo-framework)
+ * @copyright Copyright (c) 2014-2022 [Scherzo Framework](https://github.com/scherzo-framework)
  * @license   [MIT](https://github.com/scherzo-framework/scherzo/blob/master/LICENSE)
  */
 
@@ -26,12 +26,12 @@ class App
     public const SCHERZO_VERSION = '0.9.2';
 
     /** @var Container Dependencies. */
-    protected $c;
+    protected Container $c;
 
-    public function __construct(array $routes, array $config = [], array $lazy = [])
+    public function __construct(array $config, array $routes = [], array $lazy = [])
     {
         // Create a DI container populated from $config.
-        $this->c = new Container($config);
+        $this->c = $this->createContainer($config);
         // Add lazy-loaded services.
         foreach ($lazy as $key => $lazyOne) {
             $this->c->lazy($key, $lazyOne);
@@ -80,6 +80,14 @@ class App
         $route = new Route($this->c, $routeInfo);
 
         $request->route = $route;
+    }
+
+    /**
+     * Override this to use your own container class.
+     */
+    protected function createContainer(array $config): Container
+    {
+        return new Container($config);
     }
 
     /**
