@@ -1,0 +1,7 @@
+# .gitattributes
+
+# Remove the following from the archive.
+.github export-ignore
+bin export-ignore
+test export-ignore
+php*.xml
