@@ -17,14 +17,15 @@ use Scherzo\Container;
 use Scherzo\HttpException;
 use Scherzo\Request;
 use Scherzo\Response;
-use Symfony\Component\HttpFoundation\ParameterBag;
+use Scherzo\ImmutableParameterBag;
 
-class Route extends ParameterBag
+class Route extends ImmutableParameterBag
 {
+    protected const IMMUTABLE_MESSAGE = 'Route is immutable';
     protected const ERROR_TITLE = 'Internal error: invalid route';
 
-    protected $callback;
-    protected $c;
+    protected mixed $callback;
+    protected Container $c;
 
     public function __construct(Container $c, array $routeInfo)
     {
@@ -37,9 +38,14 @@ class Route extends ParameterBag
     public function dispatch(Request $request, Response $response): array|string|null
     {
         try {
-            [$class, $method] = $this->callback;
-            $handler = new $class($this->c);
-            $data = $handler->$method($request, $response);
+            $data = '';
+            if (gettype($this->callback) !== 'array') {
+                $data = call_user_func($this->callback, $this->c, $request, $response);
+            } else {
+                [$class, $method] = $this->callback;
+                $handler = new $class($this->c);
+                $data = $handler->$method($request, $response);
+            }
         } catch (HttpException $e) {
             // HttpExceptions are OK.
             throw ($e);

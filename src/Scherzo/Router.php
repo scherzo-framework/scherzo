@@ -15,24 +15,35 @@ namespace Scherzo;
 
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
+use Scherzo\Container;
 use Scherzo\HttpException;
 
 class Router
 {
+    /** HTTP request methods. */
+    public const CONNECT = 'CONNECT';
+    public const DELETE = 'DELETE';
     public const GET = 'GET';
+    public const HEAD = 'HEAD';
     public const POST = 'POST';
     public const PUT = 'PUT';
-    public const DELETE = 'DELETE';
+    public const OPTIONS = 'OPTIONS';
+    public const PATCH = 'PATCH';
+    public const TRACE = 'TRACE';
 
-    protected $dispatcher;
+    protected Dispatcher $dispatcher;
+
+    protected array $options;
 
     /**
      * The router is created with an array of routes.
      *
      * @param array $routes A list of route configurations.
+     * @param array $options Router options e.g. CORS.
      */
-    public function __construct(array $routes)
+    public function __construct(Container $container, array $routes)
     {
+        $this->options = $container->safeGet('router:config', []);
         $this->dispatcher = \FastRoute\simpleDispatcher(
             function (RouteCollector $r) use ($routes) {
                 foreach ($routes as $route) {
@@ -45,9 +56,18 @@ class Router
     /**
      * Match a route to a method and path or throw an exception.
      */
-    public function match(string $method, string $path): array
+    public function match(Request $request, Response $response): array|bool
     {
+        $method = $request->getMethod();
+        $path = $request->getPathInfo();
+
         $routeInfo = $this->dispatcher->dispatch($method, $path);
+
+        if ($this->options['cors'] ?? false) {
+            if (strtolower($request->headers->get('Sec-Fetch-Mode', '')) === 'cors') {
+                $response->headers->set('Access-Control-Allow-Origin', $this->options['allowOrigin'] ?? '*');
+            }
+        }
 
         switch ($routeInfo[0]) {
             case Dispatcher::FOUND:
@@ -56,6 +76,15 @@ class Router
                 return $routeInfo;
 
             case Dispatcher::METHOD_NOT_ALLOWED:
+                // Handle CORS preflight request.
+                if ($method === static::OPTIONS  && $this->options['cors'] ?? false) {
+                    $response->headers->set('Access-Control-Allow-Origin', $this->options['allowOrigin'] ?? '*');
+                    sort($routeInfo[1]);
+                    $response->headers->set('Access-Control-Allow-Methods', implode(', ', $routeInfo[1]));
+                    $response->headers->set('Access-Control-Allow-Headers', $this->options['corsHeaders'] ?? '*');
+                    return true;
+                }
+
                 // ... 405 Method Not Allowed
                 throw (new HttpException("Method $method not allowed for path $path"))
                     ->setStatusCode(405)

@@ -36,15 +36,17 @@ namespace Scherzo;
 
 class HttpException extends \Exception
 {
-    protected $statusCode = 500;
+    protected int $statusCode = 500;
 
-    protected $allowedMethods = [];
+    protected array $allowedMethods = [];
 
-    protected $title;
+    protected ?string $title = null;
 
-    protected $id;
+    protected ?string $id = null;
 
-    protected $info = [];
+    protected array $info = [];
+
+    protected array $headers = [];
 
     /**
      * Get the allowed methods following 405 Method Not Allowed.
@@ -86,6 +88,16 @@ class HttpException extends \Exception
      *
      * @return array Information.
      */
+    public function getHeaders(): array
+    {
+        return $this->headers;
+    }
+
+    /**
+     * Get any info.
+     *
+     * @return array Information.
+     */
     public function getInfo(): array
     {
         return $this->info;
@@ -98,9 +110,13 @@ class HttpException extends \Exception
      * @param string $value A value.
      * @return HttpException Returns `$this` for chaining.
      */
-    public function setInfo(string $key, $value): static
+    public function setInfo(string|array $key, mixed $value = null): static
     {
-        $this->info[$key] = $value;
+        if (is_array($key)) {
+            $this->info = $key;
+        } else {
+            $this->info[$key] = $value;
+        }
         return $this;
     }
 

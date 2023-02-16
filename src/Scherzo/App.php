@@ -20,6 +20,7 @@ use Scherzo\Route;
 use Scherzo\Request;
 use Scherzo\Response;
 use Scherzo\Utils;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 class App
 {
@@ -38,7 +39,7 @@ class App
         }
 
         // Create a router prepared with the routes.
-        $router = new Router($routes);
+        $router = new Router($this->c, $routes);
         $this->c->set('router', $router);
     }
 
@@ -53,8 +54,11 @@ class App
         }
         try {
             $response = $this->createResponse();
-            $this->addRoute($request);
-            $this->dispatchRoute($request, $response);
+            $wasHandled = $this->addRoute($request, $response);
+            // Route may have been handled by CORS middleware.
+            if (!$wasHandled) {
+                $this->dispatchRoute($request, $response);
+            }
         } catch (HttpException $e) {
             $this->handleHttpException($e, $request, $response);
         } catch (\Throwable $e) {
@@ -71,15 +75,19 @@ class App
      *
      * @param Request The current request.
      */
-    protected function addRoute(Request $request): void
+    protected function addRoute(Request $request, Response $response): bool
     {
-        $method = $request->getMethod();
-        $path = $request->getPathInfo();
-        $routeInfo = $this->c->get('router')->match($method, $path);
+        $routeInfo = $this->c->get('router')->match($request, $response);
+        if ($routeInfo === true) {
+            // This was an OPTIONS request that was handled by cors middleware;
+            // the response is ready to send.
+            return true;
+        }
 
         $route = new Route($this->c, $routeInfo);
 
         $request->route = $route;
+        return false;
     }
 
     /**
@@ -95,7 +103,13 @@ class App
      */
     protected function createRequest(): Request
     {
-        return Request::createFromGlobals();
+        $request = Request::createFromGlobals();
+        $data = [];
+        if ($request->getContentType() === 'json') {
+            $data = json_decode($request->getContent(), true, 512, JSON_BIGINT_AS_STRING);
+        }
+        $request->data = new ParameterBag(is_array($data) ? $data : []);
+        return $request;
     }
 
     /**
@@ -151,6 +165,7 @@ class App
      */
     protected function handleHttpException(HttpException $e, Request $request, Response $response): void
     {
+        $response->headers->add($e->getHeaders());
         $statusCode = $e->getStatusCode();
         // Don't create safe HTML, all responses are sent as JSON.
         $response->setStatusCode($statusCode);
@@ -184,6 +199,7 @@ class App
             $data['debug'] = $debug;
         }
         $response->setData(['error' => $data]);
+        
         if ($statusCode === 405) {
             $response->headers->set('Allow', implode(', ', $e->getAllowedMethods()));
         }
