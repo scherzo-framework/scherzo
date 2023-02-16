@@ -3,7 +3,7 @@
     <description>Minimal coding standards.</description>
 
     <file>src</file>
-    <file>tools</file>
+    <file>bin/install</file>
     <file>test</file>
 
     <exclude-pattern>*.(phar)$</exclude-pattern>

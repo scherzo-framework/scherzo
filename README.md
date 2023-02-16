@@ -48,7 +48,7 @@ Development branch
 $ # Install app.
 $ composer install
 $ # Install development tooling.
-$ php tools/install.php
+$ php bin/install
 ```
 
 ### Coding standards
@@ -61,15 +61,14 @@ $ php tools/phpcs.phar
 
 ### Test
 ```console
-$ php tools/phpunit.phar
-```
+$ ./vendor/bin/phpunit
 
 ### Generate documentation
 ```console
 $ # PHPDoc.
 $ php tools/phpdoc.phar
 $ # Code coverage.
-$ ./vendor/bin/phpunit.bat -c phpunit.coverage.xml --coverage-html docs/coverage --coverage-text
+$ ./vendor/bin/phpunit -c phpunit.coverage.xml --coverage-html docs/coverage --coverage-text
 $ # Testdox.
-$ ./vendor/bin/phpunit.bat --testdox-html docs/test/index.html
+$ ./vendor/bin/phpunit --testdox-html docs/test/index.html
 ```

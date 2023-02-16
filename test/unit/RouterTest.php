@@ -6,6 +6,7 @@ namespace UnitTest;
 
 use PHPUnit\Framework\TestCase;
 use Scherzo\Test\TestController;
+use Scherzo\Container;
 use Scherzo\Router;
 use Scherzo\HttpException;
 
@@ -13,9 +14,13 @@ final class RouterTest extends TestCase
 {
     public function testShouldRouteAGetRequest(): void
     {
-        $router = new Router([
+        $c = new Container();
+        $router = new Router(
+            $c,
+            [
             ['GET', '/{id:.+}', [TestController::class, 'getId']],
-        ]);
+            ]
+        );
 
         [$route, $params] = $router->match('GET', '/123');
 
@@ -31,7 +36,8 @@ final class RouterTest extends TestCase
 
     public function testShouldThrowAnHttpExceptionWhenNotFound(): void
     {
-        $router = new Router([
+        $c = new Container();
+        $router = new Router($c, [
             ['GET', '/', [TestController::class, 'getIndex']],
         ]);
 
@@ -52,7 +58,8 @@ final class RouterTest extends TestCase
 
     public function testShouldThrowAnHttpExceptionWhenMethodNotAllowed(): void
     {
-        $router = new Router([
+        $c = new Container();
+        $router = new Router($c, [
             [['POST', 'PUT'], '/', [TestController::class, 'getIndex']],
         ]);
 

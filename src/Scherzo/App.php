@@ -199,7 +199,7 @@ class App
             $data['debug'] = $debug;
         }
         $response->setData(['error' => $data]);
-        
+
         if ($statusCode === 405) {
             $response->headers->set('Allow', implode(', ', $e->getAllowedMethods()));
         }

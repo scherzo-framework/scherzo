@@ -7,7 +7,7 @@
 /log
 
 # Downloaded tooling
-/tools/*.phar
+/bin/*.phar
 
 # PHPUnit cache.
 *.cache
